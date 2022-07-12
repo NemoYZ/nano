@@ -1,0 +1,8 @@
+/programs/nano/build/CMakeFiles/rebuild_cache.dir
+/programs/nano/build/CMakeFiles/algorithm_test.dir
+/programs/nano/build/CMakeFiles/edit_cache.dir
+/programs/nano/build/CMakeFiles/skip_list_test.dir
+/programs/nano/build/CMakeFiles/mini_vector_test.dir
+/programs/nano/build/CMakeFiles/b_tree_test.dir
+/programs/nano/build/CMakeFiles/avl_tree_test.dir
+/programs/nano/build/CMakeFiles/allocator_test.dir

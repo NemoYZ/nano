@@ -1,0 +1,1 @@
+/apps/Nemo/bin/c++   -rdynamic -O3 -ggdb -std=c++17 -Wno-deprecated -Werror -Wall -Wno-unused-function -Wno-builtin-macro-redefined  -rdynamic CMakeFiles/heap_algo_test.dir/tests/heap_algo_test.cc.o  -o ../bin/heap_algo_test 

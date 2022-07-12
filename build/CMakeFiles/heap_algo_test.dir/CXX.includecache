@@ -1,0 +1,30 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/heap_algo.h
+functional
+-
+iterator.h
+../include/iterator.h
+
+../include/iterator.h
+iterator
+-
+
+/programs/nano/tests/heap_algo_test.cc
+heap_algo.h
+/programs/nano/tests/heap_algo.h
+random
+-
+time.h
+-
+vector
+-
+iostream
+-
+

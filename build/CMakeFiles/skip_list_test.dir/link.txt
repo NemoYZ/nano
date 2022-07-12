@@ -1,0 +1,1 @@
+/apps/Nemo/bin/c++  -Og -ggdb -std=c++20 -Wno-deprecated -Werror -Wall -Wno-unused-function -Wno-builtin-macro-redefined  -rdynamic CMakeFiles/skip_list_test.dir/tests/skip_list_test.cc.o  -o ../bin/skip_list_test 

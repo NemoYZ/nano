@@ -1,0 +1,281 @@
+make all --print-data-base --no-builtin-variables --no-builtin-rules --question
+# GNU Make 3.82
+# Built for x86_64-redhat-linux-gnu
+# Copyright (C) 2010  Free Software Foundation, Inc.
+# License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+# This is free software: you are free to change and redistribute it.
+# There is NO WARRANTY, to the extent permitted by law.
+ 
+
+# Make data base, printed on Tue Jul 12 21:56:24 2022
+
+# Variables
+
+# automatic
+<D = $(patsubst %/,%,$(dir $<))
+# automatic
+?F = $(notdir $?)
+# default
+.SHELLFLAGS := -c
+# environment
+VSCODE_AGENT_FOLDER = /home/Nemo/.vscode-server
+# automatic
+?D = $(patsubst %/,%,$(dir $?))
+# automatic
+@D = $(patsubst %/,%,$(dir $@))
+# automatic
+@F = $(notdir $@)
+# default
+MAKE_VERSION := 3.82
+# makefile
+CURDIR := /programs/nano
+# makefile
+SHELL = /bin/sh
+# environment
+VSCODE_NLS_CONFIG = {"locale":"en","availableLanguages":{}}
+# environment
+_ = /usr/bin/make
+# makefile (from `Makefile', line 1)
+MAKEFILE_LIST :=  Makefile
+# environment
+HISTCONTROL = ignoredups
+# environment
+XDG_DATA_DIRS = /home/Nemo/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share
+# environment
+LESSOPEN = ||/usr/bin/lesspipe.sh %s
+# environment
+VSCODE_CWD = /home/Nemo
+# environment
+SSH_CONNECTION = 192.168.66.1 58761 192.168.66.3 22
+# environment
+PATH = /home/Nemo/.vscode-server/bin/92d25e35d9bf1a6b16f7d0758f25d48ace11e5b9/bin/remote-cli:/home/Nemo/.cache/activestate/bin:/home/Nemo/.local/ActiveState/StateTool/release:/apps/Nemo/bin:/usr/local/bin:/usr/bin:/home/Nemo/bin:/usr/local/sbin:/usr/sbin
+# environment
+LSCOLORS = Gxfxcxdxbxegedabagacad
+# environment
+XDG_RUNTIME_DIR = /run/user/1000
+# environment
+ELECTRON_RUN_AS_NODE = 1
+# environment
+SELINUX_USE_CURRENT_RANGE = 
+# default
+.FEATURES := target-specific order-only second-expansion else-if shortest-stem undefine oneshell archives jobserver check-symlink
+# environment
+LS_COLORS = 
+# automatic
+%F = $(notdir $%)
+# environment
+PWD = /programs/nano
+# environment
+VSCODE_IPC_HOOK_CLI = /run/user/1000/vscode-ipc-37c50a66-41f1-437f-aeab-68a31a3c9b55.sock
+# automatic
+*D = $(patsubst %/,%,$(dir $*))
+# environment
+VSCODE_AMD_ENTRYPOINT = vs/workbench/api/node/extensionHostProcess
+# environment
+HOME = /home/Nemo
+# environment
+LD_LIBRARY_PATH = /apps/Nemo/lib:/apps/Nemo/lib64:
+# environment
+LOGNAME = Nemo
+# environment
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+# automatic
++F = $(notdir $+)
+# environment
+SELINUX_LEVEL_REQUESTED = 
+# environment
+ZSH = /home/Nemo/.oh-my-zsh
+# environment
+VSCODE_HANDLES_UNCAUGHT_ERRORS = true
+# automatic
+^D = $(patsubst %/,%,$(dir $^))
+# environment
+HOSTNAME = localhost.localdomain
+# environment
+MAKELEVEL := 0
+# default
+MAKE = $(MAKE_COMMAND)
+# default
+MAKECMDGOALS := all
+# environment
+SHLVL = 3
+# environment
+XDG_SESSION_ID = 1
+# environment
+USER = Nemo
+# makefile
+.DEFAULT_GOAL := ""
+# environment
+LESS = -R
+# automatic
+%D = $(patsubst %/,%,$(dir $%))
+# default
+MAKE_COMMAND := make
+# default
+.VARIABLES := 
+# automatic
+*F = $(notdir $*)
+# makefile
+MAKEFLAGS = Rrqp
+# environment
+MFLAGS = -Rrqp
+# environment
+SSH_CLIENT = 192.168.66.1 58761 22
+# environment
+MAIL = /var/spool/mail/Nemo
+# automatic
++D = $(patsubst %/,%,$(dir $+))
+# environment
+BROWSER = /home/Nemo/.vscode-server/bin/92d25e35d9bf1a6b16f7d0758f25d48ace11e5b9/bin/helpers/browser.sh
+# environment
+VSCODE_HANDLES_SIGPIPE = true
+# default
+MAKEFILES := 
+# automatic
+<F = $(notdir $<)
+# environment
+PAGER = less
+# environment
+LC_ALL = C
+# automatic
+^F = $(notdir $^)
+# environment
+SELINUX_ROLE_REQUESTED = 
+# default
+SUFFIXES := 
+# environment
+HISTSIZE = 50000
+# default
+.INCLUDE_DIRS = /usr/include /usr/local/include /usr/include
+# default
+.RECIPEPREFIX := 
+# environment
+LANG = C
+# variable set hash-table stats:
+# Load=70/1024=7%, Rehash=0, Collisions=6/101=6%
+
+# Pattern-specific Variable Values
+
+# No pattern-specific variable values.
+
+# Directories
+
+# . (device 2051, inode 34590689): 13 files, no impossibilities.
+
+# 13 files, no impossibilities in 1 directories.
+
+# Implicit Rules
+
+%:
+#  recipe to execute (from `Makefile', line 12):
+	if [ -d "build" ]; then \
+		cd build && make $@; \
+	else \
+		mkdir build; \
+		cd build && cmake -DCMAKE_CXX_COMPILER:FILEPATH=$(shell which g++) -DCMAKE_C_COMPILER:FILEPATH=$(shell which gcc) $@ ..; \
+	fi
+
+# 1 implicit rules, 0 (0.0%) terminal.
+
+# Files
+
+all:
+#  Command line target.
+#  Implicit rule search has been done.
+#  Implicit/static pattern stem: `all'
+#  File does not exist.
+#  File has been updated.
+#  Needs to be updated (-q is set).
+# automatic
+# @ := all
+# automatic
+# % := 
+# automatic
+# * := all
+# automatic
+# + := 
+# automatic
+# | := 
+# automatic
+# < := 
+# automatic
+# ^ := 
+# automatic
+# ? := 
+# variable set hash-table stats:
+# Load=8/32=25%, Rehash=0, Collisions=1/19=5%
+#  recipe to execute (from `Makefile', line 12):
+	if [ -d "build" ]; then \
+		cd build && make $@; \
+	else \
+		mkdir build; \
+		cd build && cmake -DCMAKE_CXX_COMPILER:FILEPATH=$(shell which g++) -DCMAKE_C_COMPILER:FILEPATH=$(shell which gcc) $@ ..; \
+	fi
+
+# Not a target:
+xx:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+..PHONY: xx
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+"":
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+#  recipe to execute (from `Makefile', line 4):
+	if [ -d "build" ]; then \
+		cd build && make -j4; \
+	else \
+		mkdir build; \
+		cd build && cmake -DCMAKE_CXX_COMPILER:FILEPATH=$(shell which g++) -DCMAKE_C_COMPILER:FILEPATH=$(shell which gcc) ..; \
+	fi
+
+# Not a target:
+.SUFFIXES:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+Makefile:
+#  Implicit rule search has been done.
+#  Implicit/static pattern stem: `Makefile'
+#  Last modified 2022-03-19 19:29:15.582671037
+#  File has been updated.
+#  Successfully updated.
+#  recipe to execute (from `Makefile', line 12):
+	if [ -d "build" ]; then \
+		cd build && make $@; \
+	else \
+		mkdir build; \
+		cd build && cmake -DCMAKE_CXX_COMPILER:FILEPATH=$(shell which g++) -DCMAKE_C_COMPILER:FILEPATH=$(shell which gcc) $@ ..; \
+	fi
+
+# Not a target:
+.DEFAULT:
+#  Implicit rule search has not been done.
+#  Modification time never checked.
+#  File has not been updated.
+
+# files hash-table stats:
+# Load=7/1024=1%, Rehash=0, Collisions=1/20=5%
+# VPATH Search Paths
+
+# No `vpath' search paths.
+
+# No general (`VPATH' variable) search path.
+
+# # of strings in strcache: 0 / lookups = 30 / hits = 30
+# # of strcache buffers: 1 (* 8176 B/buffer = 8176 B)
+# strcache used: total = 0 (161) / max = 0 / min = 8176 / avg = 0
+# strcache free: total = 0 (8015) / max = 0 / min = 8176 / avg = 0
+
+# strcache hash-table stats:
+# Load=22/8192=0%, Rehash=0, Collisions=1/30=3%
+# Finished Make data base on Tue Jul 12 21:56:24 2022
+
+ 

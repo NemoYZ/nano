@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/allocator.h
+cstddef
+-
+construct.h
+../include/construct.h
+
+../include/construct.h
+utility
+-
+iterator
+-
+
+/programs/nano/tests/allocator_test.cc
+allocator.h
+/programs/nano/tests/allocator.h
+string
+-
+iostream
+-
+
