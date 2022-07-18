@@ -8,13 +8,13 @@ namespace nano {
 struct tree_node_base : public node {
     using self = tree_node_base;
 
-    tree_node_base() = default;
-    tree_node_base(self* _left, self* _right) :
+    tree_node_base() noexcept = default;
+    tree_node_base(self* _left, self* _right) noexcept :
         left(_left),
         right(_right),
         parent(nullptr) {
     }
-    tree_node_base(self* _left, self* _right, self* _parent) :
+    tree_node_base(self* _left, self* _right, self* _parent) noexcept :
         left(_left),
         right(_right),
         parent(_parent) {
@@ -39,7 +39,6 @@ struct b_tree_node_base : public node {
             ++i;
         }
         return i;
-        //return static_cast<degree_t>(&node - parent->children);
     }
 };
 

@@ -3,5 +3,7 @@
 
 CMakeFiles/allocator_test.dir/tests/allocator_test.cc.o
  ../include/allocator.h
+ ../include/concepts.h
  ../include/construct.h
+ ../include/type_traits.h
  /programs/nano/tests/allocator_test.cc

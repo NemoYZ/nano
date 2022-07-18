@@ -27,6 +27,8 @@ int main(int argc, char** argv) {
         std::cout << *iter;
     }
     std::cout << std::endl;
+
+    nano::mini_vector<int> vec2(1, 2);
     
     return 0;
 }

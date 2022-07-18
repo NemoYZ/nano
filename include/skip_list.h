@@ -1,11 +1,12 @@
 #pragma once
 
-#include "allocator.h"
+#include "construct.h"
 #include <iterator>
 #include "utility.h"
 #include <functional>
 #include <initializer_list>
 #include "type_traits.h"
+#include "concepts.h"
 
 namespace nano {
 
@@ -60,11 +61,11 @@ struct skip_list_iterator : public skip_list_iterator_base<T> {
 	using node_ptr		    = typename skip_list_iterator_base<T>::node_ptr;
 	using self 				= skip_list_iterator;
 
-	skip_list_iterator() = default;
-	skip_list_iterator(node_ptr _node) : 
+	skip_list_iterator() noexcept = default;
+	skip_list_iterator(node_ptr _node) noexcept : 
 		skip_list_iterator_base<T>(_node) { 
 	}
-	skip_list_iterator(node_base_ptr _node) :
+	skip_list_iterator(node_base_ptr _node) noexcept :
 		skip_list_iterator_base<T>(_node) {
 	}
 
@@ -111,13 +112,13 @@ struct skip_list_const_iterator : public skip_list_iterator_base<T> {
 	using node_ptr		    = typename skip_list_iterator_base<T>::node_ptr;
 	using self 				= skip_list_const_iterator<T>;
 
-	skip_list_const_iterator() = default;
+	skip_list_const_iterator() noexcept = default;
 
-	skip_list_const_iterator(node_ptr* _node) : 
+	skip_list_const_iterator(node_ptr* _node) noexcept : 
 		skip_list_iterator_base<T>(_node) { 
 	}
 
-	skip_list_const_iterator(node_base_ptr _node) : 
+	skip_list_const_iterator(node_base_ptr _node) noexcept : 
 		skip_list_iterator_base<T>(_node) { 
 	}
 
@@ -146,12 +147,12 @@ struct skip_list_const_iterator : public skip_list_iterator_base<T> {
 		return static_cast<node_ptr>(this->node)->value;
 	}
 
-	pointer operator->() const {
+	pointer operator->() const noexcept {
 		return &(operator*());
 	}
 };
 
-template<typename T, typename Comp = std::less<T>, typename Alloc = allocator<T> >
+template<typename T, typename Comp = std::less<T>>
 class skip_list {
 public:
     using level_type                = int;
@@ -161,8 +162,6 @@ public:
     constexpr static int P = 4;
 
 public:
-    using allocator_type           	= Alloc;
-	using data_allocator			= Alloc;
 	using key_type 					= T;
 	using mapped_type 				= T;
 	using value_type                = T;
@@ -176,8 +175,6 @@ public:
 	using iterator                  = skip_list_iterator<value_type>;
     using reverse_iterator          = const std::reverse_iterator<iterator>;
 	using const_reverse_iterator    = const std::reverse_iterator<const_iterator>;
-	using key_compare               = Comp;
-	using value_compare             = Comp;
 
 public:
     iterator begin() noexcept { return static_cast<node_ptr>(m_header->level[0].forward); }
@@ -190,14 +187,14 @@ public:
 	const_reverse_iterator rend() const noexcept { return std::reverse_iterator<const_iterator>(begin()); }
 
 public:
-    skip_list(const key_compare& comp = key_compare());
+    skip_list(const Comp& comp = Comp());
 
-	skip_list(const std::initializer_list<T>& ilist, const key_compare& comp = key_compare()) :
+	skip_list(const std::initializer_list<key_type>& ilist, const Comp& comp = Comp()) :
 		skip_list(ilist.begin(), ilist.end(), comp) {
 	}
 
-	template<typename InputIter>
-	skip_list(InputIter first, InputIter last, const key_compare& comp = key_compare());
+	template<std::input_iterator InputIter>
+	skip_list(InputIter first, InputIter last, const Comp& comp = Comp());
 
 	skip_list(const skip_list& other);
 
@@ -239,7 +236,7 @@ public:
 		return emplace_multi_use_hint(hint, std::move(value));
 	}
 
-	template <typename InputIter>
+	template <std::input_iterator InputIter>
 	void insert_multi(InputIter first, InputIter last);
 
 	std::pair<iterator, bool> insert_unique(const value_type& value) {
@@ -260,7 +257,7 @@ public:
 		return emplace_unique_hint(hint, std::move(value));
 	}
 
-	template <typename InputIter>
+	template <std::input_iterator InputIter>
 	void insert_unique(InputIter first, InputIter last);
 
 	//erase
@@ -271,31 +268,40 @@ public:
   	void clear();
 
 	//find
-	iterator find(const key_type& key);
-	const_iterator find(const key_type& key) const;
+	iterator find(const key_type& key) noexcept;
+	const_iterator find(const key_type& key) const noexcept;
 
-	size_type count_multi(const key_type& key) const;
-	size_type count_unique(const key_type& key) const;
+	size_type count_multi(const key_type& key) const noexcept;
+	size_type count_unique(const key_type& key) const noexcept;
 
-	iterator lower_bound(const key_type& key) { return lbound(key).node; }
-	const_iterator lower_bound(const key_type& key) const { return lbound(key).node; }
+	iterator lower_bound(const key_type& key) noexcept { 
+        return lbound(key).node; 
+    }
+	const_iterator lower_bound(const key_type& key) const noexcept { 
+        return lbound(key).node; 
+    }
 
-	iterator upper_bound(const key_type& key) { return ubound(key).node; }
-	const_iterator upper_bound(const key_type& key) const { return ubound(key).node; }
+	iterator upper_bound(const key_type& key) noexcept { return ubound(key).node; }
+	const_iterator upper_bound(const key_type& key) const noexcept { return ubound(key).node; }
 
 	std::pair<iterator, iterator>             
-	equal_range_multi(const key_type& key) { return { lower_bound(key), upper_bound(key) }; }
+	equal_range_multi(const key_type& key) noexcept { 
+        return { lower_bound(key), upper_bound(key) }; 
+    }
 
 	std::pair<const_iterator, const_iterator> 
-	equal_range_multi(const key_type& key) const { return { lower_bound(key), upper_bound(key) }; }
+	equal_range_multi(const key_type& key) const noexcept { 
+        return { lower_bound(key), upper_bound(key) }; 
+    }
 
-	std::pair<iterator, iterator> equal_range_unique(const key_type& key);
-	std::pair<const_iterator, const_iterator> equal_range_unique(const key_type& key) const;
+	std::pair<iterator, iterator> equal_range_unique(const key_type& key) noexcept;
+	std::pair<const_iterator, const_iterator> 
+    equal_range_unique(const key_type& key) const noexcept;
 
 	//other
 	void swap(skip_list& rhs) noexcept;
-	size_type size() const { return m_size; }
-	bool empty() const { return 0 == m_size; }
+	size_type size() const noexcept { return m_size; }
+	bool empty() const noexcept { return 0 == m_size; }
 
 private:
     using node_ptr 					= skip_list_node<T>*;
@@ -317,26 +323,15 @@ private:
 	iterator insert_node(node_ptr node, level_type level, node_base_ptr (&update)[MAX_LEVEL]);
 
 private:
-	static allocator_type& get_allocator() {
-		static allocator_type alloc;
-		return alloc;
-	}
-
-	static data_allocator& get_data_alloc() {
-		static data_allocator alloc;
-		return alloc;
-	}
-
-private:
     node_base_ptr m_header;
     size_type m_size;
     level_type m_level;
-    const key_compare& m_comp;
+    const Comp& m_comp;
 };
 
-template<typename T, typename Comp, typename Alloc>
-typename skip_list<T, Comp, Alloc>::iterator 
-skip_list<T, Comp, Alloc>::lbound(const key_type& key) {
+template<typename T, typename Comp>
+typename skip_list<T, Comp>::iterator 
+skip_list<T, Comp>::lbound(const key_type& key) {
     node_base_ptr head = m_header;
     for (level_type i = m_level - 1; i >= 0; --i) {
         while (head->level[i].forward != m_header &&
@@ -347,9 +342,9 @@ skip_list<T, Comp, Alloc>::lbound(const key_type& key) {
     return head;
 }
 
-template<typename T, typename Comp, typename Alloc>
-typename skip_list<T, Comp, Alloc>::iterator 
-skip_list<T, Comp, Alloc>::ubound(const key_type& key) {
+template<typename T, typename Comp>
+typename skip_list<T, Comp>::iterator 
+skip_list<T, Comp>::ubound(const key_type& key) {
     node_base_ptr head = m_header;
     level_type i;
     for (i = m_level - 1; i >= 0; --i) {
@@ -367,10 +362,10 @@ skip_list<T, Comp, Alloc>::ubound(const key_type& key) {
     return head;
 }
 
-template<typename T, typename Comp, typename Alloc>
-typename skip_list<T, Comp, Alloc>::level_type 
-skip_list<T, Comp, Alloc>::random_level() {
-    constexpr static int mask = 0xFFFF;
+template<typename T, typename Comp>
+typename skip_list<T, Comp>::level_type 
+skip_list<T, Comp>::random_level() {
+    constexpr int mask = 0xFFFF;  //const static
     level_type level = 1;
     while ((random() & mask) < (mask / P)) {
         ++level;
@@ -378,19 +373,25 @@ skip_list<T, Comp, Alloc>::random_level() {
     return (level < MAX_LEVEL) ? level : MAX_LEVEL;
 }
 
-template<typename T, typename Comp, typename Alloc>
+template<typename T, typename Comp>
 template<typename... Args>
-typename skip_list<T, Comp, Alloc>::node_ptr 
-skip_list<T, Comp, Alloc>::create_node(level_type level, Args&&... args) {
+typename skip_list<T, Comp>::node_ptr 
+skip_list<T, Comp>::create_node(level_type level, Args&&... args) {
     node_ptr newNode = static_cast<node_ptr>(::operator new(sizeof(skip_list_node<T>)));
     newNode->level = static_cast<skip_list_level*>(::operator new(sizeof(skip_list_level) * level));
-    get_data_alloc().construct(&newNode->value, std::forward<Args>(args)...);
+    try {
+        construct(&newNode->value, std::forward<Args>(args)...);
+    } catch (...) {
+        ::operator delete(newNode->level);
+        ::operator delete(newNode);
+        newNode = nullptr;
+    }
     return newNode;
 }
 
-template<typename T, typename Comp, typename Alloc>
-typename skip_list<T, Comp, Alloc>::node_base_ptr 
-skip_list<T, Comp, Alloc>::create_node_base() {
+template<typename T, typename Comp>
+typename skip_list<T, Comp>::node_base_ptr 
+skip_list<T, Comp>::create_node_base() {
     node_base_ptr newNode = static_cast<node_base_ptr>(::operator new(sizeof(skip_list_node_base)));
     newNode->level = static_cast<skip_list_level*>(::operator new(sizeof(skip_list_level) * MAX_LEVEL));
     newNode->backward = newNode;
@@ -401,21 +402,21 @@ skip_list<T, Comp, Alloc>::create_node_base() {
     return newNode;
 }
 
-template<typename T, typename Comp, typename Alloc>
-void skip_list<T, Comp, Alloc>::destroy_node(node_ptr node) {
-    get_data_alloc().destroy(&node->value);
+template<typename T, typename Comp>
+void skip_list<T, Comp>::destroy_node(node_ptr node) {
+    destroy(&node->value);
     ::operator delete(node->level);
     ::operator delete(node);
 }
 
-template<typename T, typename Comp, typename Alloc>
-void skip_list<T, Comp, Alloc>::destroy_node_base(node_base_ptr node) {
+template<typename T, typename Comp>
+void skip_list<T, Comp>::destroy_node_base(node_base_ptr node) {
     ::operator delete(node->level);
     ::operator delete(node);
 }
 
-template<typename T, typename Comp, typename Alloc>
-bool skip_list<T, Comp, Alloc>::get_insert_muti(const key_type& key, 
+template<typename T, typename Comp>
+bool skip_list<T, Comp>::get_insert_muti(const T& key, 
         node_base_ptr (&update)[MAX_LEVEL]) {
     node_base_ptr head = m_header;
     for (level_type i = m_level - 1; i >= 0; --i) {
@@ -429,8 +430,8 @@ bool skip_list<T, Comp, Alloc>::get_insert_muti(const key_type& key,
     return true;
 }
 
-template<typename T, typename Comp, typename Alloc>
-bool skip_list<T, Comp, Alloc>::get_insert_unique(const key_type& key, 
+template<typename T, typename Comp>
+bool skip_list<T, Comp>::get_insert_unique(const T& key, 
         node_base_ptr (&update)[MAX_LEVEL]) {
     node_base_ptr head = m_header;
     for (level_type i = m_level - 1; i >= 0; --i) {
@@ -450,9 +451,9 @@ bool skip_list<T, Comp, Alloc>::get_insert_unique(const key_type& key,
     return true;
 }
 
-template<typename T, typename Comp, typename Alloc>
-typename skip_list<T, Comp, Alloc>::iterator 
-skip_list<T, Comp, Alloc>::insert_node(node_ptr node, level_type level, node_base_ptr (&update)[MAX_LEVEL]) {
+template<typename T, typename Comp>
+typename skip_list<T, Comp>::iterator 
+skip_list<T, Comp>::insert_node(node_ptr node, level_type level, node_base_ptr (&update)[MAX_LEVEL]) {
     if (level > m_level) {
         for (level_type i = m_level; i < level; ++i) {
             update[i] = m_header;    //需要更新头
@@ -472,32 +473,31 @@ skip_list<T, Comp, Alloc>::insert_node(node_ptr node, level_type level, node_bas
     return node;
 }
 
-template<typename T, typename Comp, typename Alloc>
-skip_list<T, Comp, Alloc>::skip_list(const key_compare& comp) :
+template<typename T, typename Comp>
+skip_list<T, Comp>::skip_list(const Comp& comp) :
     m_header(create_node_base()),
     m_size(0),
     m_level(1),
     m_comp(comp) {
 }
 
-template<typename T, typename Comp, typename Alloc>
-template<typename InputIter>
-skip_list<T, Comp, Alloc>::skip_list(InputIter first, InputIter last, 
-        const key_compare& comp) :
+template<typename T, typename Comp>
+template<std::input_iterator InputIter>
+skip_list<T, Comp>::skip_list(InputIter first, InputIter last, 
+        const Comp& comp) :
         skip_list(comp) {
-    static_assert(is_input_iterator<InputIter>::value, "input iterator required");
     for (; first != last; ++first) {
         insert_multi(*first);
     }
 }
 
-template<typename T, typename Comp, typename Alloc>
-skip_list<T, Comp, Alloc>::skip_list(const skip_list& other) :
+template<typename T, typename Comp>
+skip_list<T, Comp>::skip_list(const skip_list& other) :
         skip_list(other.begin(), other.end()) {
 }
 
-template<typename T, typename Comp, typename Alloc>
-skip_list<T, Comp, Alloc>::skip_list(skip_list&& other) :
+template<typename T, typename Comp>
+skip_list<T, Comp>::skip_list(skip_list&& other) :
         m_header(other.m_header),
         m_size(other.m_size),
         m_level(other.m_level) {
@@ -506,24 +506,24 @@ skip_list<T, Comp, Alloc>::skip_list(skip_list&& other) :
     other.m_level = 1;
 }
 
-template<typename T, typename Comp, typename Alloc>
-skip_list<T, Comp, Alloc>::~skip_list() {
+template<typename T, typename Comp>
+skip_list<T, Comp>::~skip_list() {
     clear();
     destroy_node_base(m_header);
 }
 
-template<typename T, typename Comp, typename Alloc>
-skip_list<T, Comp, Alloc>&
-skip_list<T, Comp, Alloc>::operator=(const skip_list& other) {
+template<typename T, typename Comp>
+skip_list<T, Comp>&
+skip_list<T, Comp>::operator=(const skip_list& other) {
     if (this != &other) {
         clear();
         insert_multi(other.begin(), other.end());
     }
 }
 
-template<typename T, typename Comp, typename Alloc>
-skip_list<T, Comp, Alloc>& 
-skip_list<T, Comp, Alloc>::operator=(skip_list&& other) {
+template<typename T, typename Comp>
+skip_list<T, Comp>& 
+skip_list<T, Comp>::operator=(skip_list&& other) {
     if (this != &other) {
         m_header = other.m_header;
         m_size = other.m_size;
@@ -534,10 +534,10 @@ skip_list<T, Comp, Alloc>::operator=(skip_list&& other) {
     }
 }
 
-template<typename T, typename Comp, typename Alloc>
+template<typename T, typename Comp>
 template <typename ...Args>
-typename skip_list<T, Comp, Alloc>::iterator 
-skip_list<T, Comp, Alloc>::emplace_multi(Args&& ...args) {
+typename skip_list<T, Comp>::iterator 
+skip_list<T, Comp>::emplace_multi(Args&& ...args) {
     level_type level = random_level();
 
     node_ptr newNode = create_node(level, std::forward<Args>(args)...);
@@ -547,18 +547,18 @@ skip_list<T, Comp, Alloc>::emplace_multi(Args&& ...args) {
     return newNode;
 }
 
-template<typename T, typename Comp, typename Alloc>
+template<typename T, typename Comp>
 template <typename ...Args>
-typename skip_list<T, Comp, Alloc>::iterator 
-skip_list<T, Comp, Alloc>::emplace_multi_hint(iterator hint, Args&& ...args) {
+typename skip_list<T, Comp>::iterator 
+skip_list<T, Comp>::emplace_multi_hint(iterator hint, Args&& ...args) {
     //temporary
     return emplace_multi(std::forward<Args>(args)...);
 }
 
-template<typename T, typename Comp, typename Alloc>
+template<typename T, typename Comp>
 template <typename ...Args>
-std::pair<typename skip_list<T, Comp, Alloc>::iterator, bool> 
-skip_list<T, Comp, Alloc>::emplace_unique(Args&& ...args) {
+std::pair<typename skip_list<T, Comp>::iterator, bool> 
+skip_list<T, Comp>::emplace_unique(Args&& ...args) {
     level_type level = random_level();
     bool succeed = false;
     node_ptr newNode = create_node(level, std::forward<Args>(args)...);
@@ -573,35 +573,33 @@ skip_list<T, Comp, Alloc>::emplace_unique(Args&& ...args) {
     return { newNode, succeed };
 }
 
-template<typename T, typename Comp, typename Alloc>
+template<typename T, typename Comp>
 template <typename ...Args>
-std::pair<typename skip_list<T, Comp, Alloc>::iterator, bool> 
-skip_list<T, Comp, Alloc>::emplace_unique_hint(iterator hint, Args&& ...args) {
+std::pair<typename skip_list<T, Comp>::iterator, bool> 
+skip_list<T, Comp>::emplace_unique_hint(iterator hint, Args&& ...args) {
     //temporary
     return emplace_unique(std::forward<Args>(args)...);
 }
 
-template<typename T, typename Comp, typename Alloc>
-template <typename InputIter>
-void skip_list<T, Comp, Alloc>::insert_multi(InputIter first, InputIter last) {
-    static_assert(is_input_iterator_v<InputIter>, "input iterator required");
+template<typename T, typename Comp>
+template <std::input_iterator InputIter>
+void skip_list<T, Comp>::insert_multi(InputIter first, InputIter last) {
     for (; first != last; ++first) {
         emplace_multi(*first);
     }
 }
 
-template<typename T, typename Comp, typename Alloc>
-template <typename InputIter>
-void skip_list<T, Comp, Alloc>::insert_unique(InputIter first, InputIter last) {
-    static_assert(is_input_iterator_v<InputIter>, "input iterator required");
+template<typename T, typename Comp>
+template <std::input_iterator InputIter>
+void skip_list<T, Comp>::insert_unique(InputIter first, InputIter last) {
     for (; first != last; ++first) {
         emplace_unique(*first);
     }
 }
 
-template<typename T, typename Comp, typename Alloc>
-typename skip_list<T, Comp, Alloc>::iterator  
-skip_list<T, Comp, Alloc>::erase(iterator hint) {
+template<typename T, typename Comp>
+typename skip_list<T, Comp>::iterator  
+skip_list<T, Comp>::erase(iterator hint) {
     if (end() == hint) {
         return end();
     }
@@ -646,9 +644,9 @@ skip_list<T, Comp, Alloc>::erase(iterator hint) {
     return next;
 }
 
-template<typename T, typename Comp, typename Alloc>
-typename skip_list<T, Comp, Alloc>::size_type 
-skip_list<T, Comp, Alloc>::erase_multi(const key_type& key) {
+template<typename T, typename Comp>
+typename skip_list<T, Comp>::size_type 
+skip_list<T, Comp>::erase_multi(const key_type& key) {
     //temporary
     size_type count = 0;
     while (erase_unique(key)) {
@@ -657,9 +655,9 @@ skip_list<T, Comp, Alloc>::erase_multi(const key_type& key) {
     return count;
 }
 
-template<typename T, typename Comp, typename Alloc>
-typename skip_list<T, Comp, Alloc>::size_type 
-skip_list<T, Comp, Alloc>::erase_unique(const key_type& key) {
+template<typename T, typename Comp>
+typename skip_list<T, Comp>::size_type 
+skip_list<T, Comp>::erase_unique(const key_type& key) {
     node_base_ptr update[MAX_LEVEL];
     node_base_ptr header = m_header;
     
@@ -691,8 +689,8 @@ skip_list<T, Comp, Alloc>::erase_unique(const key_type& key) {
     return count;
 }
 
-template<typename T, typename Comp, typename Alloc>
-void skip_list<T, Comp, Alloc>::erase(iterator first, iterator last) {
+template<typename T, typename Comp>
+void skip_list<T, Comp>::erase(iterator first, iterator last) {
     while (first != last) {
         iterator next = first;
         ++next;
@@ -701,8 +699,8 @@ void skip_list<T, Comp, Alloc>::erase(iterator first, iterator last) {
     }
 }
 
-template<typename T, typename Comp, typename Alloc>
-void skip_list<T, Comp, Alloc>::clear() {
+template<typename T, typename Comp>
+void skip_list<T, Comp>::clear() {
     while (m_header->backward != m_header) {
         node_ptr node = static_cast<node_ptr>(m_header->backward);
         m_header->backward = node->backward;
@@ -712,9 +710,9 @@ void skip_list<T, Comp, Alloc>::clear() {
     m_level = 1;
 }
 
-template<typename T, typename Comp, typename Alloc>
-typename skip_list<T, Comp, Alloc>::iterator 
-skip_list<T, Comp, Alloc>::find(const key_type& key) {
+template<typename T, typename Comp>
+typename skip_list<T, Comp>::iterator 
+skip_list<T, Comp>::find(const key_type& key) noexcept {
     iterator iter = lbound(key);
     if (end() != iter && !m_comp(key, static_cast<node_ptr>(iter.node)->value)) {
         return iter.node;
@@ -723,9 +721,9 @@ skip_list<T, Comp, Alloc>::find(const key_type& key) {
     return end();
 }
 
-template<typename T, typename Comp, typename Alloc>
-typename skip_list<T, Comp, Alloc>::const_iterator 
-skip_list<T, Comp, Alloc>::find(const key_type& key) const {
+template<typename T, typename Comp>
+typename skip_list<T, Comp>::const_iterator 
+skip_list<T, Comp>::find(const key_type& key) const noexcept {
     iterator iter = lbound(key);
     if (end() != iter && !m_comp(key, static_cast<node_ptr>(iter.node)->value)) {
         return iter.node;
@@ -734,9 +732,9 @@ skip_list<T, Comp, Alloc>::find(const key_type& key) const {
     return iter.node;
 }
 
-template<typename T, typename Comp, typename Alloc>
-typename skip_list<T, Comp, Alloc>::size_type 
-skip_list<T, Comp, Alloc>::count_multi(const key_type& key) const {
+template<typename T, typename Comp>
+typename skip_list<T, Comp>::size_type 
+skip_list<T, Comp>::count_multi(const key_type& key) const noexcept {
     iterator iter = lbound(key);
     size_type count = 0;
     while (iter != end() && !m_comp(key, *iter)) {
@@ -747,19 +745,19 @@ skip_list<T, Comp, Alloc>::count_multi(const key_type& key) const {
 }
 
 
-template<typename T, typename Comp, typename Alloc>
-typename skip_list<T, Comp, Alloc>::size_type 
-skip_list<T, Comp, Alloc>::count_unique(const key_type& key) const {
+template<typename T, typename Comp>
+typename skip_list<T, Comp>::size_type 
+skip_list<T, Comp>::count_unique(const key_type& key) const noexcept {
     iterator iter = lbound(key);
     if (end() == iter) {
         return 0;
     }
-    return key_compare()(key, *iter) ? 0 : 1;
+    return m_comp(key, *iter) ? 0 : 1;
 }
 
-template<typename T, typename Comp, typename Alloc>
-std::pair<typename skip_list<T, Comp, Alloc>::iterator, typename skip_list<T, Comp, Alloc>::iterator>             
-skip_list<T, Comp, Alloc>::equal_range_unique(const key_type& key) {
+template<typename T, typename Comp>
+std::pair<typename skip_list<T, Comp>::iterator, typename skip_list<T, Comp>::iterator>             
+skip_list<T, Comp>::equal_range_unique(const key_type& key) noexcept {
     iterator iter = find(key);
     iterator next = iter;
     if (end() == iter) { 
@@ -769,9 +767,9 @@ skip_list<T, Comp, Alloc>::equal_range_unique(const key_type& key) {
     return { iter, ++next };
 }
 
-template<typename T, typename Comp, typename Alloc>
-std::pair<typename skip_list<T, Comp, Alloc>::const_iterator, typename skip_list<T, Comp, Alloc>::const_iterator> 
-skip_list<T, Comp, Alloc>::equal_range_unique(const key_type& key) const {
+template<typename T, typename Comp>
+std::pair<typename skip_list<T, Comp>::const_iterator, typename skip_list<T, Comp>::const_iterator> 
+skip_list<T, Comp>::equal_range_unique(const key_type& key) const noexcept {
     const_iterator iter = find(key);
     const_iterator next = iter;
     if (end() == iter) {
@@ -780,8 +778,8 @@ skip_list<T, Comp, Alloc>::equal_range_unique(const key_type& key) const {
     return { iter, ++next };
 }
 
-template<typename T, typename Comp, typename Alloc>
-void skip_list<T, Comp, Alloc>::swap(skip_list& rhs) noexcept {
+template<typename T, typename Comp>
+void skip_list<T, Comp>::swap(skip_list& rhs) noexcept {
     if (this != &rhs) {
         std::swap(m_header, rhs.m_header);
         std::swap(m_size, rhs.m_size);
@@ -789,36 +787,36 @@ void skip_list<T, Comp, Alloc>::swap(skip_list& rhs) noexcept {
     }
 }
 
-template<typename T, typename Comp, typename Alloc>
-bool operator<(const skip_list<T, Comp, Alloc>& lhs, const skip_list<T, Comp, Alloc>& rhs) {
+template<typename T, typename Comp>
+bool operator<(const skip_list<T, Comp>& lhs, const skip_list<T, Comp>& rhs) {
 	return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
-template<typename T, typename Comp, typename Alloc>
-bool operator>(const skip_list<T, Comp, Alloc>& lhs, const skip_list<T, Comp, Alloc>& rhs) {
+template<typename T, typename Comp>
+bool operator>(const skip_list<T, Comp>& lhs, const skip_list<T, Comp>& rhs) {
 	return rhs < lhs;
 }
 
-template<typename T, typename Comp, typename Alloc>
-bool operator<=(const skip_list<T, Comp, Alloc>& lhs, const skip_list<T, Comp, Alloc>& rhs) {
+template<typename T, typename Comp>
+bool operator<=(const skip_list<T, Comp>& lhs, const skip_list<T, Comp>& rhs) {
 	return !(rhs < lhs);
 }
 
-template<typename T, typename Comp, typename Alloc>
-bool operator>=(const skip_list<T, Comp, Alloc>& lhs, const skip_list<T, Comp, Alloc>& rhs) {
+template<typename T, typename Comp>
+bool operator>=(const skip_list<T, Comp>& lhs, const skip_list<T, Comp>& rhs) {
 	return !(lhs < rhs);
 }
 
-template<typename T, typename Comp, typename Alloc>
-bool operator==(const skip_list<T, Comp, Alloc>& lhs, const skip_list<T, Comp, Alloc>& rhs) {
+template<typename T, typename Comp>
+bool operator==(const skip_list<T, Comp>& lhs, const skip_list<T, Comp>& rhs) {
 	if (lhs.size() != rhs.size()) {
 		return false;
 	}
 	return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
-template<typename T, typename Comp, typename Alloc>
-bool operator!=(const skip_list<T, Comp, Alloc>& lhs, const skip_list<T, Comp, Alloc>& rhs) {
+template<typename T, typename Comp>
+bool operator!=(const skip_list<T, Comp>& lhs, const skip_list<T, Comp>& rhs) {
 
 	return !(lhs == rhs);
 }

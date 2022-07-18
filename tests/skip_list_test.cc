@@ -33,6 +33,9 @@ void test2();
 int main(int argc, char** argv) {
     test();
 
+    auto slist2 = slist;
+    assert(slist2 == slist);
+
     return 0;
 }
 

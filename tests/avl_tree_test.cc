@@ -34,7 +34,9 @@ void test_set_efficiency();
 void test();
 
 int main(int argc, char** argv) {
-    test();
+    e.seed(time(nullptr));
+
+    //test();
     std::cout << "原始数据: ";
     for (int i = 0; i < 10; ++i) {
         nums.push_back(u(e));
@@ -42,11 +44,13 @@ int main(int argc, char** argv) {
     }
     std::cout << std::endl;
     std::cout << "*******************" << std::endl;  
-    //test_insert();
+    test_insert();
     //std::cout << "avl树共用时: " << nano::run_time(&test_efficiency) << "秒" << std::endl;
     //test_insert_string();
     //test_find();
-    test_erase();
+    //test_erase();
+    auto avlTree2(avlTree);
+    assert(avlTree2 == avlTree);
     
     return 0;
 }

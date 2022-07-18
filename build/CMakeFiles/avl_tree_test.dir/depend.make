@@ -3,8 +3,8 @@
 
 CMakeFiles/avl_tree_test.dir/tests/avl_tree_test.cc.o: ../include/algo.h
 CMakeFiles/avl_tree_test.dir/tests/avl_tree_test.cc.o: ../include/algorithm.h
-CMakeFiles/avl_tree_test.dir/tests/avl_tree_test.cc.o: ../include/allocator.h
 CMakeFiles/avl_tree_test.dir/tests/avl_tree_test.cc.o: ../include/avl_tree.h
+CMakeFiles/avl_tree_test.dir/tests/avl_tree_test.cc.o: ../include/concepts.h
 CMakeFiles/avl_tree_test.dir/tests/avl_tree_test.cc.o: ../include/construct.h
 CMakeFiles/avl_tree_test.dir/tests/avl_tree_test.cc.o: ../include/heap_algo.h
 CMakeFiles/avl_tree_test.dir/tests/avl_tree_test.cc.o: ../include/mini_vector.h

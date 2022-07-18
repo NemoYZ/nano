@@ -50,5 +50,6 @@ set(CMAKE_DEPEND_INFO_FILES
   "CMakeFiles/mini_vector_test.dir/DependInfo.cmake"
   "CMakeFiles/b_tree_test.dir/DependInfo.cmake"
   "CMakeFiles/avl_tree_test.dir/DependInfo.cmake"
-  "CMakeFiles/allocator_test.dir/DependInfo.cmake"
+  "CMakeFiles/heap_algo_test.dir/DependInfo.cmake"
+  "CMakeFiles/nano.dir/DependInfo.cmake"
   )

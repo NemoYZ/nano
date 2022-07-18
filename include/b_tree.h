@@ -1,13 +1,5 @@
 #pragma once
 
-/**
- * @brief 难点: 1.迭代器的自增和自减(重要等级: 最高)
- *              2.对象的构造(重要等级: 中)
- *              3.如何尽量节省内存(重要等级: 高)
- *              4.API实现(高)
- *              5.API优雅的实现(中)
- */
-
 #include <stdint.h>
 #include <type_traits>
 #include <functional>
@@ -17,8 +9,9 @@
 #include <string>
 #include "tree.h"
 #include <iterator>
-#include "allocator.h"
+#include "construct.h"
 #include "type_traits.h"
+#include "utility.h"
 
 #ifdef B_TREE_DEBUG
 #include <iostream>
@@ -26,14 +19,9 @@
 
 namespace nano {
 
-#if __cplusplus >= 201703L
 inline constexpr degree_t DEFAULT_DEGREE = 4;
-#else
-#define DEFAULT_DEGREE 4
-#endif //__cplusplus >= 201703L
 
 //TODO: 动态增长, 不要一开始就申请很大的一块内存
-//TODO: 做成柔性数组
 template<typename T>
 struct b_tree_node : public b_tree_node_base {
     //不需要单独记录values数组的长度，因为B数孩子节点 = 值个数 + 1
@@ -46,9 +34,9 @@ struct b_tree_iterator_base : public std::iterator<std::bidirectional_iterator_t
 	using node_base_ptr = b_tree_node_base*;
 	using node_ptr 		= b_tree_node<T>*;
 
-	b_tree_iterator_base() = default;
+	b_tree_iterator_base() noexcept = default;
 
-	b_tree_iterator_base(node_base_ptr _node, node_base_ptr _header, degree_t _index) :
+	b_tree_iterator_base(node_base_ptr _node, node_base_ptr _header, degree_t _index) noexcept :
 		node(_node),
 		header(_header),
         index(_index) {
@@ -81,8 +69,12 @@ struct b_tree_iterator : public b_tree_iterator_base<T> {
     using node_ptr          = typename b_tree_iterator_base<T>::node_ptr;
 	using self 				= b_tree_iterator<T>;
 
-	b_tree_iterator() = default;
-	b_tree_iterator(node_base_ptr _node, degree_t _index, node_base_ptr _header) : 
+	b_tree_iterator() noexcept = default;
+	b_tree_iterator(node_base_ptr _node, degree_t _index, node_base_ptr _header) noexcept : 
+		b_tree_iterator_base<T>(_node, _header, _index) { 
+	}
+
+	b_tree_iterator(node_ptr _node, degree_t _index, node_base_ptr _header) noexcept : 
 		b_tree_iterator_base<T>(_node, _header, _index) { 
 	}
 
@@ -127,7 +119,7 @@ struct b_tree_iterator : public b_tree_iterator_base<T> {
 		return (static_cast<node_ptr>(this->node))->values[this->index];
 	}
 
-	pointer operator->() const {
+	pointer operator->() const noexcept {
 		return &(operator*());
 	}
 };
@@ -144,9 +136,13 @@ struct b_tree_const_iterator : public b_tree_iterator_base<T> {
     using node_ptr          = typename b_tree_iterator_base<T>::node_ptr;
 	using self 				= b_tree_const_iterator<T>;
 
-	b_tree_const_iterator() = default;
+	b_tree_const_iterator() noexcept = default;
 
-	b_tree_const_iterator(node_ptr _node, degree_t _index, node_base_ptr _header) : 
+	b_tree_const_iterator(node_ptr _node, degree_t _index, node_base_ptr _header) noexcept : 
+		b_tree_iterator_base<T>(_node, _header, _index) { 
+	}
+
+	b_tree_const_iterator(node_base_ptr _node, degree_t _index, node_base_ptr _header) noexcept : 
 		b_tree_iterator_base<T>(_node, _header, _index) { 
 	}
 
@@ -188,18 +184,25 @@ struct b_tree_const_iterator : public b_tree_iterator_base<T> {
 	}
 
 	reference operator*() const noexcept {
-		return (static_cast<node_ptr>(this->node))->value;
+		return (static_cast<node_ptr>(this->node))->values[this->index];
 	}
 
-	pointer operator->() const {
+	pointer operator->() const noexcept {
 		return &(operator*());
 	}
 };
 
+/**
+ * @brief 
+ * 
+ * @tparam T 
+ * @tparam Comp 
+ * @tparam degree 最大度数
+ */
 template<typename T, typename Comp = std::less<T>, 
-    degree_t degree = DEFAULT_DEGREE, typename Alloc = allocator<T> >
+    degree_t degree = DEFAULT_DEGREE>
 class b_tree {    
-    static_assert(degree >= 2, "degree at least 2");
+    static_assert(degree >= 3, "degree at least 3");
 	static_assert(std::is_move_assignable<T>::value || std::is_trivially_move_assignable<T>::value, 
 		"move/trivailly assignable required");
 	static_assert(std::is_copy_assignable<T>::value, "copy assignable required");
@@ -210,8 +213,7 @@ public:
 	constexpr static degree_t order = degree - 1;
 
 public:
-    using allocator_type           	= Alloc;
-	using data_allocator			= Alloc;
+	using key_type 					= T;
 	using value_type                = T;
 	using pointer                   = T*;
 	using const_pointer             = const T*;
@@ -226,11 +228,11 @@ public:
 
 public:
     iterator begin() noexcept { return iterator(m_header->children[0], 0, m_header); }
-	iterator end() noexcept { return iterator(nullptr, degree, m_header); }
+	iterator end() noexcept { return iterator(static_cast<node_base_ptr>(nullptr), degree, m_header); }
     reverse_iterator rbegin() noexcept { return std::reverse_iterator<iterator>(end()); }
 	reverse_iterator rend() noexcept { return std::reverse_iterator<iterator>(begin()); }
 	const_iterator begin() const noexcept { return const_iterator(m_header->children[0], degree, m_header); }
-	const_iterator end() const noexcept { return const_iterator(nullptr, 0, m_header); }
+	const_iterator end() const noexcept { return const_iterator(static_cast<node_base_ptr>(nullptr), 0, m_header); }
     const_reverse_iterator rbegin() const noexcept { return std::reverse_iterator<const_iterator>(end()); }
 	const_reverse_iterator rend() const noexcept { return std::reverse_iterator<const_iterator>(begin()); }
 
@@ -241,7 +243,7 @@ public:
 		b_tree(ilist.begin(), ilist.end(), comp) {
 	}
 
-	template<typename InputIter>
+	template<std::input_iterator InputIter>
 	b_tree(InputIter first, InputIter last, const Comp& comp = Comp());
 
 	b_tree(const b_tree& other);
@@ -268,85 +270,85 @@ public:
 	std::pair<iterator, bool> emplace_unique_hint(iterator hint, Args&& ...args);
 
 	//insert
-	iterator insert_multi(const value_type& value) {
-		return emplace_multi(value);
+	iterator insert_multi(const key_type& key) {
+		return emplace_multi(key);
 	}
 
-	iterator insert_multi(value_type&& value) { 
-		return emplace_multi(std::move(value)); 
+	iterator insert_multi(key_type&& key) { 
+		return emplace_multi(std::move(key)); 
 	}
 
-	iterator insert_multi(iterator hint, const value_type& value) {
-		return emplace_multi_use_hint(hint, value);
+	iterator insert_multi(iterator hint, const key_type& key) {
+		return emplace_multi_use_hint(hint, key);
 	}
 
-	iterator insert_multi(iterator hint, value_type&& value) {
-		return emplace_multi_use_hint(hint, std::move(value));
+	iterator insert_multi(iterator hint, key_type&& key) {
+		return emplace_multi_use_hint(hint, std::move(key));
 	}
 
-	template <typename InputIter>
+	template <std::input_iterator InputIter>
 	void insert_multi(InputIter first, InputIter last);
 
-	std::pair<iterator, bool> insert_unique(const value_type& value) {
-		return emplace_unique(value);
+	std::pair<iterator, bool> insert_unique(const key_type& key) {
+		return emplace_unique(key);
 	}
 
-	std::pair<iterator, bool> insert_unique(value_type&& value) {
-		return emplace_unique(std::move(value));
-	}
-
-	std::pair<iterator, bool> 
-	insert_unique_hint(iterator hint, const value_type& value) {
-		return emplace_unique_hint(hint, value);
+	std::pair<iterator, bool> insert_unique(key_type&& key) {
+		return emplace_unique(std::move(key));
 	}
 
 	std::pair<iterator, bool> 
-	insert_unique_hint(iterator hint, value_type&& value) {
-		return emplace_unique_hint(hint, std::move(value));
+	insert_unique_hint(iterator hint, const key_type& key) {
+		return emplace_unique_hint(hint, key);
 	}
 
-	template <typename InputIter>
+	std::pair<iterator, bool> 
+	insert_unique_hint(iterator hint, key_type&& key) {
+		return emplace_unique_hint(hint, std::move(key));
+	}
+
+	template <std::input_iterator InputIter>
 	void insert_unique(InputIter first, InputIter last);
 
 	//erase
 	iterator erase(iterator hint);
-  	size_type erase_multi(const T& key);
-  	size_type erase_unique(const T& key);
+  	size_type erase_multi(const key_type& key);
+  	size_type erase_unique(const key_type& key);
   	void erase(iterator first, iterator last);
   	void clear();
 
 	//find
-	iterator find(const T& key);
-	const_iterator find(const T& key) const;
+	iterator find(const key_type& key) noexcept;
+	const_iterator find(const key_type& key) const noexcept;
 
-	size_type count_multi(const T& key) const;
-	size_type count_unique(const T& key) const;
+	size_type count_multi(const key_type& key) const noexcept;
+	size_type count_unique(const key_type& key) const noexcept;
 
-	iterator lower_bound(const T& key) { return lbound(key); }
-	const_iterator lower_bound(const T& key) const { 
+	iterator lower_bound(const key_type& key) noexcept { return lbound(key); }
+	const_iterator lower_bound(const key_type& key) const noexcept{ 
 		iterator iter = lbound(key);
 		return const_iterator(iter.node, iter.index, iter.header); 
 	}
 
-	iterator upper_bound(const T& key) { return ubound(key); }
-	const_iterator upper_bound(const T& key) const { 
+	iterator upper_bound(const key_type& key) noexcept { return ubound(key); }
+	const_iterator upper_bound(const key_type& key) const noexcept { 
 		iterator iter = ubound(key);
 		return const_iterator(iter.node, iter.index, iter.header); 
 	}
 
 	std::pair<iterator, iterator>             
-	equal_range_multi(const T& key) { return { lower_bound(key), upper_bound(key) }; }
+	equal_range_multi(const key_type& key) noexcept { return { lower_bound(key), upper_bound(key) }; }
 
 	std::pair<const_iterator, const_iterator> 
-	equal_range_multi(const T& key) const { return { lower_bound(key), upper_bound(key) }; }
+	equal_range_multi(const key_type& key) const noexcept{ return { lower_bound(key), upper_bound(key) }; }
 
-	std::pair<iterator, iterator> equal_range_unique(const T& key);
-	std::pair<const_iterator, const_iterator> equal_range_unique(const T& key) const;
+	std::pair<iterator, iterator> equal_range_unique(const T& key) noexcept ;
+	std::pair<const_iterator, const_iterator> equal_range_unique(const T& key) const noexcept ;
 
 	//other
 	void swap(b_tree& rhs) noexcept;
-	size_type size() const { return m_size; }
-	bool empty() const { return 0 == m_size; }
+	size_type size() const noexcept { return m_size; }
+	bool empty() const noexcept { return 0 == m_size; }
 	bool disk_read() { return true; }
 	bool disk_write() { return true; }
 #ifdef B_TREE_DEBUG
@@ -370,17 +372,17 @@ private:
 	void deallocate_node(node_ptr node);
 	static void destroy_node(node_base_ptr node);
 	static void destroy_node_base(node_base_ptr node);
-	static node_ptr copy_node(node_base_ptr node);
+	node_ptr copy_node(node_base_ptr node);
 	void clear_since(node_ptr node);
 	
 private:
 	//auxiliary functions
-	iterator lbound(const T& key);
-	iterator ubound(const T& key);
-	iterator get_insert_multi(const T& key);
-	iterator insert_value(iterator iter, T& key);
-	iterator erase_value(T key);
-	std::pair<iterator, bool> get_insert_unique(const T& key);
+	iterator lbound(const key_type& key);
+	iterator ubound(const key_type& key);
+	iterator get_insert_multi(const key_type& key);
+	iterator insert_value(iterator iter, key_type& key);
+	iterator erase_value(key_type key);
+	std::pair<iterator, bool> get_insert_unique(const key_type& key);
 
 private: 
 	//other node operaion
@@ -400,33 +402,22 @@ private:
 	}
 
 private:
-	static allocator_type& get_allocator() {
-		static allocator_type alloc;
-		return alloc;
-	}
-
-	static data_allocator& get_data_alloc() {
-		static data_allocator alloc;
-		return alloc;
-	}
-
-private:
     node_base_ptr m_header = nullptr;
     size_type m_size = 0;
     const Comp& m_comp;
 };
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-void b_tree<T, Comp, degree, Alloc>::deallocate_node(node_ptr node) {
+template<typename T, typename Comp, degree_t degree>
+void b_tree<T, Comp, degree>::deallocate_node(node_ptr node) {
 	::operator delete(node->children);
 	::operator delete(node->values);
 	::operator delete(node);
 }
 	
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::node_ptr 
-b_tree<T, Comp, degree, Alloc>::create_node(degree_t _vsz) {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::node_ptr 
+b_tree<T, Comp, degree>::create_node(degree_t _vsz) {
 	node_ptr newNode = static_cast<node_ptr>(::operator new(sizeof(b_tree_node<T>)));
 	newNode->values = static_cast<T*>(::operator new(sizeof(T) * order));
 	newNode->children = static_cast<node_base_ptr*>(::operator new(sizeof(node_base_ptr) * degree));
@@ -438,50 +429,50 @@ b_tree<T, Comp, degree, Alloc>::create_node(degree_t _vsz) {
 	return newNode;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::node_base_ptr 
-b_tree<T, Comp, degree, Alloc>::create_node_base(degree_t _vsz) {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::node_base_ptr 
+b_tree<T, Comp, degree>::create_node_base(degree_t _vsz) {
 	node_base_ptr newNode = static_cast<node_base_ptr>(::operator new(sizeof(b_tree_node_base)));
 	newNode->children = static_cast<node_base_ptr*>(::operator new(sizeof(node_base_ptr) * 2));
 	static_cast<void>(_vsz);
 	return newNode;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-void b_tree<T, Comp, degree, Alloc>::destroy_node(node_base_ptr node) {
+template<typename T, typename Comp, degree_t degree>
+void b_tree<T, Comp, degree>::destroy_node(node_base_ptr node) {
 	node_ptr node1 = static_cast<node_ptr>(node);
 	::operator delete(node1->children);
 	for (degree_t i = 0; i < node1->vsz; ++i) {
-		get_data_alloc().destroy(&node1->values[i]);
+		destroy(&node1->values[i]);
 	}
 	::operator delete(node1->values);
 	::operator delete(node1);
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-void b_tree<T, Comp, degree, Alloc>::destroy_node_base(node_base_ptr node) {
+template<typename T, typename Comp, degree_t degree>
+void b_tree<T, Comp, degree>::destroy_node_base(node_base_ptr node) {
 	::operator delete(node->children);
 	::operator delete(node);
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::node_ptr 
-b_tree<T, Comp, degree, Alloc>::copy_node(node_base_ptr node) {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::node_ptr 
+b_tree<T, Comp, degree>::copy_node(node_base_ptr node) {
 	node_ptr node1 = static_cast<node_ptr>(node);
-	node_ptr newNode = create_node();
+	node_ptr newNode = create_node(0);
 	for (degree_t i = 0; i < node1->vsz; ++i) {
-		get_data_alloc().construct(newNode->values + i, node1->values[i]);
+		construct(newNode->values + i, node1->values[i]);
 	}
 	newNode->vsz = node1->vsz;
 
 	return newNode;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-void b_tree<T, Comp, degree, Alloc>::clear_since(node_ptr node) {
+template<typename T, typename Comp, degree_t degree>
+void b_tree<T, Comp, degree>::clear_since(node_ptr node) {
 	if (node) {
 		for (degree_t i = 0; i < node->vsz; ++i) {
-			get_data_alloc().destroy(&node->values[i]);
+			destroy(&node->values[i]);
 			if (!is_leaf(node)) {
 				clear_since(static_cast<node_ptr>(node->children[i]));
 			}
@@ -493,9 +484,9 @@ void b_tree<T, Comp, degree, Alloc>::clear_since(node_ptr node) {
 	}
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::iterator
-b_tree<T, Comp, degree, Alloc>::lbound(const T& key) {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::iterator
+b_tree<T, Comp, degree>::lbound(const key_type& key) {
 	node_ptr root = static_cast<node_ptr>(m_header->parent);
 	node_base_ptr parent = nullptr;
 	degree_t index = 0;
@@ -520,9 +511,9 @@ b_tree<T, Comp, degree, Alloc>::lbound(const T& key) {
 	return iterator(parent, index1, m_header);
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::iterator
-b_tree<T, Comp, degree, Alloc>::ubound(const T& key) {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::iterator
+b_tree<T, Comp, degree>::ubound(const key_type& key) {
 	node_ptr root = static_cast<node_ptr>(m_header->parent);
 	node_base_ptr parent = nullptr;
 	degree_t index = 0;
@@ -546,8 +537,8 @@ b_tree<T, Comp, degree, Alloc>::ubound(const T& key) {
 	return iterator(parent, index1, m_header);
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-void b_tree<T, Comp, degree, Alloc>::split_child(node_base_ptr parent, degree_t childIndex) {
+template<typename T, typename Comp, degree_t degree>
+void b_tree<T, Comp, degree>::split_child(node_base_ptr parent, degree_t childIndex) {
 	node_ptr parentNode = static_cast<node_ptr>(parent);
 	if (node_filled(parentNode)) {  //保证父亲节点不为满节点
 		split_node(parentNode);
@@ -562,8 +553,8 @@ void b_tree<T, Comp, degree, Alloc>::split_child(node_base_ptr parent, degree_t 
 
 	//依从从后往前拷贝后半部分的值
 	while (n2 >= 0) {
-		get_data_alloc().construct(&child2->values[n2], std::move(child1->values[n1]));
-		get_data_alloc().destroy(&child1->values[n1]);
+		construct(&child2->values[n2], std::move(child1->values[n1]));
+		destroy(&child1->values[n1]);
 		if (!is_leaf(child1)) {  //如果不是叶子，还需要拷贝后半部分的孩子结点指针
 			child2->children[n2 + 1] = child1->children[n1 + 1];
 			child1->children[n1 + 1]->parent = child2;
@@ -583,7 +574,7 @@ void b_tree<T, Comp, degree, Alloc>::split_child(node_base_ptr parent, degree_t 
 	//孩子结点中间值上升
 	degree_t parentVsz = parentNode->vsz;
 	//给中间节点让出位置
-	get_data_alloc().construct(&parentNode->values[parentVsz], parentNode->values[parentVsz - 1]);
+	construct(&parentNode->values[parentVsz], parentNode->values[parentVsz - 1]);
 	parentNode->children[parentVsz + 1] = parentNode->children[parentVsz];
 	for (degree_t i = parentVsz - 1; i > childIndex; --i) {
 		parentNode->values[i] = std::move(parentNode->values[i - 1]);
@@ -592,7 +583,7 @@ void b_tree<T, Comp, degree, Alloc>::split_child(node_base_ptr parent, degree_t 
 	parentNode->values[childIndex] = std::move(child1->values[child1->vsz - 1]);
 	parentNode->children[childIndex + 1] = child2;
 	child2->parent = parentNode;
-	get_data_alloc().destroy(&child1->values[child1->vsz - 1]);
+	destroy(&child1->values[child1->vsz - 1]);
 	--child1->vsz;
 	++parentNode->vsz;
 	if (m_header->children[1] == child1 ||
@@ -601,8 +592,8 @@ void b_tree<T, Comp, degree, Alloc>::split_child(node_base_ptr parent, degree_t 
 	}
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-void b_tree<T, Comp, degree, Alloc>::split_node(node_base_ptr node) {
+template<typename T, typename Comp, degree_t degree>
+void b_tree<T, Comp, degree>::split_node(node_base_ptr node) {
 	node_ptr parent = static_cast<node_ptr>(node->parent);
 	if (nullptr == parent) { 	//分裂根节点
 		parent = create_node(0);
@@ -616,21 +607,21 @@ void b_tree<T, Comp, degree, Alloc>::split_node(node_base_ptr node) {
 	split_child(parent, child_index(parent, node) /*0*/);
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::node_ptr 
-b_tree<T, Comp, degree, Alloc>::merge_node(node_base_ptr parent, 
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::node_ptr 
+b_tree<T, Comp, degree>::merge_node(node_base_ptr parent, 
 		degree_t childIndex, degree_t vIndex) {
 	node_ptr parentNode = static_cast<node_ptr>(parent);
 	node_ptr child1 = static_cast<node_ptr>(parentNode->children[childIndex]);
 	node_ptr child2 = static_cast<node_ptr>(parentNode->children[childIndex + 1]);
 	degree_t vsz1 = child1->vsz;
 	degree_t vsz2 = child2->vsz;
-	get_data_alloc().construct(&child1->values[vsz1], std::move(parentNode->values[vIndex])); //把关键字合并到child1
+	construct(&child1->values[vsz1], std::move(parentNode->values[vIndex])); //把关键字合并到child1
 	++vsz1; 
 	//把child2结点的值合并到child1
 	//把孩子也拷贝过去
 	for (degree_t i = 0; i < vsz2; ++i) {
-		get_data_alloc().construct(&child1->values[i + vsz1], std::move(child2->values[i]));
+		construct(&child1->values[i + vsz1], std::move(child2->values[i]));
 		if (!is_leaf(child1)) { //also !is_leaf(child2)
 			child1->children[i + vsz1] = child2->children[i];
 			child2->children[i]->parent = child1;
@@ -651,7 +642,7 @@ b_tree<T, Comp, degree, Alloc>::merge_node(node_base_ptr parent,
 		parentNode->children[i + 1] = parentNode->children[i + 2];
 	}
 	parentNode->children[pvsz] = nullptr; //置空最后一个孩子
-	get_data_alloc().destroy(&parentNode->values[pvsz - 1]);
+	destroy(&parentNode->values[pvsz - 1]);
 	--parentNode->vsz;
 
 	if (0 == parentNode->vsz) {
@@ -670,9 +661,9 @@ b_tree<T, Comp, degree, Alloc>::merge_node(node_base_ptr parent,
 	return child1;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::iterator 
-b_tree<T, Comp, degree, Alloc>::get_insert_multi(const T& val) {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::iterator 
+b_tree<T, Comp, degree>::get_insert_multi(const key_type& val) {
 	//由于insert_multi一定会成功
 	//我们可以一边向下查找，一边调整
 	node_ptr curr = static_cast<node_ptr>(m_header->parent);
@@ -706,9 +697,9 @@ b_tree<T, Comp, degree, Alloc>::get_insert_multi(const T& val) {
 	return iterator(parent, index, m_header);
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-std::pair<typename b_tree<T, Comp, degree, Alloc>::iterator, bool> 
-b_tree<T, Comp, degree, Alloc>::get_insert_unique(const T& val) {
+template<typename T, typename Comp, degree_t degree>
+std::pair<typename b_tree<T, Comp, degree>::iterator, bool> 
+b_tree<T, Comp, degree>::get_insert_unique(const key_type& val) {
 	if (nullptr == m_header->parent) {
 		node_ptr node = create_node(0);
 		m_header->parent = m_header->children[0] = m_header->children[1] = node;
@@ -739,9 +730,9 @@ b_tree<T, Comp, degree, Alloc>::get_insert_unique(const T& val) {
 	return { iter, true };
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::iterator 
-b_tree<T, Comp, degree, Alloc>::insert_value(iterator iter, T& key) {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::iterator 
+b_tree<T, Comp, degree>::insert_value(iterator iter, key_type& key) {
 	node_ptr node1 = static_cast<node_ptr>(iter.node);
 	degree_t index1 = iter.index;
 	
@@ -770,9 +761,9 @@ b_tree<T, Comp, degree, Alloc>::insert_value(iterator iter, T& key) {
 	return iterator(node1, index1, m_header);
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::iterator 
-b_tree<T, Comp, degree, Alloc>::erase_value(T key) {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::iterator 
+b_tree<T, Comp, degree>::erase_value(key_type key) {
 	/**
 	* 情况一: 在node中找到关键字val并且node是叶子结点
 	*		1) 直接从node结点中删除val
@@ -813,7 +804,7 @@ b_tree<T, Comp, degree, Alloc>::erase_value(T key) {
 			for (degree_t i = index; i < node->vsz - 1; ++i) {
 				node->values[i] = std::move(node->values[i + 1]);
 			}
-			get_data_alloc().destroy(&node->values[node->vsz - 1]);
+			destroy(&node->values[node->vsz - 1]);
 			--node->vsz;
 			if (m_header->parent == node && 0 == node->vsz) {
 				destroy_node(m_header->parent);
@@ -853,7 +844,7 @@ b_tree<T, Comp, degree, Alloc>::erase_value(T key) {
 					degree_t childVsz = child->vsz;
 					degree_t lBrotherVsz = lBrother->vsz;
 
-					get_data_alloc().construct(&child->values[childVsz], std::move(child->values[childVsz - 1]));
+					construct(&child->values[childVsz], std::move(child->values[childVsz - 1]));
 					child->children[childVsz + 1] = child->children[childVsz];
 					for (degree_t i = childVsz - 1; i > 0; --i) { //为父亲节点新来的值让出位置
 						child->values[i] = std::move(child->values[i - 1]);
@@ -870,7 +861,7 @@ b_tree<T, Comp, degree, Alloc>::erase_value(T key) {
 						lBrother->children[lBrotherVsz] = nullptr;
 					}
 					++child->vsz;
-					get_data_alloc().destroy(&lBrother->values[lBrotherVsz - 1]); //在兄弟节点中删除该值
+					destroy(&lBrother->values[lBrotherVsz - 1]); //在兄弟节点中删除该值
 					--lBrother->vsz;
 					node = child;
 					index = value_lbound(node, key);
@@ -881,7 +872,7 @@ b_tree<T, Comp, degree, Alloc>::erase_value(T key) {
 					degree_t rBrotherVsz = rBrother->vsz;
 
 					//父亲节点的值下来
-					get_data_alloc().construct(&child->values[childVsz], std::move(node->values[index]));
+					construct(&child->values[childVsz], std::move(node->values[index]));
 					//--node->vsz
 					if (!is_leaf(child)) { //also !is_leaf(rBrother)
 						child->children[childVsz + 1] = rBrother->children[0];
@@ -900,7 +891,7 @@ b_tree<T, Comp, degree, Alloc>::erase_value(T key) {
 						rBrother->children[rBrotherVsz - 1] = rBrother->children[rBrotherVsz];
 						rBrother->children[rBrother->vsz + 1] = nullptr;
 					}
-					get_data_alloc().destroy(&rBrother->values[rBrotherVsz - 1]);
+					destroy(&rBrother->values[rBrotherVsz - 1]);
 					--rBrother->vsz;
 					node = child;
 					index = value_lbound(node, key);
@@ -922,16 +913,16 @@ b_tree<T, Comp, degree, Alloc>::erase_value(T key) {
 	return iterator(node, index, m_header);
 }	
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-b_tree<T, Comp, degree, Alloc>::b_tree(const Comp& comp) :
+template<typename T, typename Comp, degree_t degree>
+b_tree<T, Comp, degree>::b_tree(const Comp& comp) :
 	m_header(create_node_base(0)),
 	m_size(0),
 	m_comp(comp) {
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-template<typename InputIter>
-b_tree<T, Comp, degree, Alloc>::b_tree(InputIter first, InputIter last, const Comp& comp) :
+template<typename T, typename Comp, degree_t degree>
+template<std::input_iterator InputIter>
+b_tree<T, Comp, degree>::b_tree(InputIter first, InputIter last, const Comp& comp) :
 		m_header(create_node_base(0)),
 		m_size(0),
 		m_comp(comp) {
@@ -941,43 +932,45 @@ b_tree<T, Comp, degree, Alloc>::b_tree(InputIter first, InputIter last, const Co
 	}
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-b_tree<T, Comp, degree, Alloc>::b_tree(const b_tree& other) :
-		m_header(create_node_base()),
-		m_size(0) {
+template<typename T, typename Comp, degree_t degree>
+b_tree<T, Comp, degree>::b_tree(const b_tree& other) :
+		m_header(create_node_base(0)),
+		m_size(0),
+		m_comp(other.m_comp) {
 	if (other.size()) {
-		m_header->parent = copy_since(other.m_header->parent, &copy_node);
-		/*
-		m_header->parent->parent = m_header;
-		m_header->children[0] = min_node(m_header->parent);
-		m_header->children[1] = max_node(m_header->parent);
+		clear();
+		m_header->parent = copy_since(other.m_header->parent, [this](node_base_ptr node){
+			return copy_node(node);
+		});
+		m_header->children[0] = min_node(m_header->parent).first;
+		m_header->children[1] = max_node(m_header->parent).first;
 		m_size = other.m_size;
-		*/
-		other.m_size = 0;
 	}
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-b_tree<T, Comp, degree, Alloc>::b_tree(b_tree&& other) :
+template<typename T, typename Comp, degree_t degree>
+b_tree<T, Comp, degree>::b_tree(b_tree&& other) :
 		m_header(other.m_header),
 		m_size(other.m_size) {
 	other.m_header = create_node_base();
 	other.m_size = 0;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-b_tree<T, Comp, degree, Alloc>::~b_tree() {
+template<typename T, typename Comp, degree_t degree>
+b_tree<T, Comp, degree>::~b_tree() {
 	clear();
 	destroy_node_base(m_header);
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-b_tree<T, Comp, degree, Alloc>& 
-b_tree<T, Comp, degree, Alloc>::operator=(const b_tree& other) {
+template<typename T, typename Comp, degree_t degree>
+b_tree<T, Comp, degree>& 
+b_tree<T, Comp, degree>::operator=(const b_tree& other) {
 	if (this != &other) {
 		if (other.size()) {
 			clear();
-			m_header->parent = copy_since(other.m_header->parent, &copy_node);
+			m_header->parent = copy_since(other.m_header->parent, [this](b_tree_node_base* node){
+				return copy_node(node);
+			});
 			m_header->parent->parent = m_header;
 			m_header->children[0] = min_node(m_header->parent);
 			m_header->children[1] = max_node(m_header->parent);
@@ -986,9 +979,9 @@ b_tree<T, Comp, degree, Alloc>::operator=(const b_tree& other) {
 	}
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-b_tree<T, Comp, degree, Alloc>&
-b_tree<T, Comp, degree, Alloc>::operator=(b_tree&& other) {
+template<typename T, typename Comp, degree_t degree>
+b_tree<T, Comp, degree>&
+b_tree<T, Comp, degree>::operator=(b_tree&& other) {
 	if (this != &other) {
 		m_header = other.m_header;
 		m_size = other.m_size;
@@ -997,20 +990,20 @@ b_tree<T, Comp, degree, Alloc>::operator=(b_tree&& other) {
 	}
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
+template<typename T, typename Comp, degree_t degree>
 template <typename ...Args>
-typename b_tree<T, Comp, degree, Alloc>::iterator 
-b_tree<T, Comp, degree, Alloc>::emplace_multi(Args&& ...args) {
+typename b_tree<T, Comp, degree>::iterator 
+b_tree<T, Comp, degree>::emplace_multi(Args&& ...args) {
 	T val(std::forward<Args>(args)...);
 	iterator iter = get_insert_multi(val);
 	insert_value(iter, val);
 	return iter;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
+template<typename T, typename Comp, degree_t degree>
 template <typename ...Args>
-typename b_tree<T, Comp, degree, Alloc>::iterator 
-b_tree<T, Comp, degree, Alloc>::emplace_multi_hint(iterator hint, Args&& ...args) {
+typename b_tree<T, Comp, degree>::iterator 
+b_tree<T, Comp, degree>::emplace_multi_hint(iterator hint, Args&& ...args) {
 	T key(std::forward<Args>(args)...);
 	if (is_leaf(hint.node)) {
 		degree_t index = value_ubound(key);
@@ -1022,10 +1015,10 @@ b_tree<T, Comp, degree, Alloc>::emplace_multi_hint(iterator hint, Args&& ...args
 	return emplace_multi(std::move(key));
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
+template<typename T, typename Comp, degree_t degree>
 template <typename ...Args>
-std::pair<typename b_tree<T, Comp, degree, Alloc>::iterator, bool> 
-b_tree<T, Comp, degree, Alloc>::emplace_unique(Args&& ...args) {
+std::pair<typename b_tree<T, Comp, degree>::iterator, bool> 
+b_tree<T, Comp, degree>::emplace_unique(Args&& ...args) {
 	T key(std::forward<Args>(args)...);
 	std::pair<iterator, bool> myPair = get_insert_unique(key);
 	if (!myPair.second) {
@@ -1036,10 +1029,10 @@ b_tree<T, Comp, degree, Alloc>::emplace_unique(Args&& ...args) {
 	return {iterator(iter.node, iter.index, iter.header), true};
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
+template<typename T, typename Comp, degree_t degree>
 template <typename ...Args>
-std::pair<typename b_tree<T, Comp, degree, Alloc>::iterator, bool> 
-b_tree<T, Comp, degree, Alloc>::emplace_unique_hint(iterator hint, Args&& ...args) {
+std::pair<typename b_tree<T, Comp, degree>::iterator, bool> 
+b_tree<T, Comp, degree>::emplace_unique_hint(iterator hint, Args&& ...args) {
 	T key(std::forward<Args>(args)...);
 	degree_t index = value_ubound(hint.node, key);
 	node_ptr node1 = static_cast<node_ptr>(hint.node);
@@ -1053,27 +1046,27 @@ b_tree<T, Comp, degree, Alloc>::emplace_unique_hint(iterator hint, Args&& ...arg
 	return emplace_unique(std::move(key));
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-template <typename InputIter>
-void b_tree<T, Comp, degree, Alloc>::insert_multi(InputIter first, InputIter last) {
+template<typename T, typename Comp, degree_t degree>
+template <std::input_iterator InputIter>
+void b_tree<T, Comp, degree>::insert_multi(InputIter first, InputIter last) {
 	static_assert(is_input_iterator_v<InputIter>, "input iterator required");
 	for (; first != last; ++first) {
 		insert_multi(*first);
 	}
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-template <typename InputIter>
-void b_tree<T, Comp, degree, Alloc>::insert_unique(InputIter first, InputIter last) {
+template<typename T, typename Comp, degree_t degree>
+template <std::input_iterator InputIter>
+void b_tree<T, Comp, degree>::insert_unique(InputIter first, InputIter last) {
 	static_assert(is_input_iterator_v<InputIter>, "input iterator required");
 	for ( ; first != last; ++first) {
 		insert_unique(*first);
 	}
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::iterator 
-b_tree<T, Comp, degree, Alloc>::erase(iterator hint) {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::iterator 
+b_tree<T, Comp, degree>::erase(iterator hint) {
 	node_ptr node = static_cast<node_ptr>(hint.node);
 	degree_t minVsz = degree / 2 - 1;
 	if (is_leaf(node) && node->vsz > minVsz) { //叶子节点，并且值个数大于最小值个数，直接删除
@@ -1082,7 +1075,7 @@ b_tree<T, Comp, degree, Alloc>::erase(iterator hint) {
 		for (degree_t i = index; i < nvsz - 1; ++i) {
 			node->values[i] = std::move(node->values[i + 1]);
 		}
-		get_data_alloc().destroy(&node->values[nvsz - 1]);
+		destroy(&node->values[nvsz - 1]);
 		--node->vsz;
 		--m_size;
 		return iterator(node, index, m_header);
@@ -1091,9 +1084,9 @@ b_tree<T, Comp, degree, Alloc>::erase(iterator hint) {
 	return erase_value(*hint);
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::size_type 
-b_tree<T, Comp, degree, Alloc>::erase_multi(const T& key) {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::size_type 
+b_tree<T, Comp, degree>::erase_multi(const key_type& key) {
 	size_type n = 0;
 	while (true) {
 		iterator iter = lbound(key);
@@ -1107,9 +1100,9 @@ b_tree<T, Comp, degree, Alloc>::erase_multi(const T& key) {
 	return n;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::size_type 
-b_tree<T, Comp, degree, Alloc>::erase_unique(const T& key) {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::size_type 
+b_tree<T, Comp, degree>::erase_unique(const T& key) {
 	iterator iter = lbound(key);
 	if (end() != iter && !m_comp(key, *iter)) {
 		erase(iter);
@@ -1119,22 +1112,22 @@ b_tree<T, Comp, degree, Alloc>::erase_unique(const T& key) {
 	return 0;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-void b_tree<T, Comp, degree, Alloc>::erase(iterator first, iterator last) {
+template<typename T, typename Comp, degree_t degree>
+void b_tree<T, Comp, degree>::erase(iterator first, iterator last) {
 	for (; first != last; ++first) {
 		erase(first);
 	}
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-void b_tree<T, Comp, degree, Alloc>::clear() {
+template<typename T, typename Comp, degree_t degree>
+void b_tree<T, Comp, degree>::clear() {
 	clear_since(static_cast<node_ptr>(m_header->parent));
 	m_size = 0;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::iterator 
-b_tree<T, Comp, degree, Alloc>::find(const T& key) {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::iterator 
+b_tree<T, Comp, degree>::find(const key_type& key) noexcept {
 	iterator iter = lbound(key);
 	if (m_comp(static_cast<node_ptr>(iter.node)->values[iter.node], key)) {
 		return end();
@@ -1143,9 +1136,9 @@ b_tree<T, Comp, degree, Alloc>::find(const T& key) {
 	return iter;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::const_iterator 
-b_tree<T, Comp, degree, Alloc>::find(const T& key) const {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::const_iterator 
+b_tree<T, Comp, degree>::find(const key_type& key) const noexcept {
 	iterator iter = lbound(key);
 	if (m_comp(*iter, key)) {
 		return end();
@@ -1154,9 +1147,9 @@ b_tree<T, Comp, degree, Alloc>::find(const T& key) const {
 	return const_iterator(iter.node, iter.index);
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::size_type 
-b_tree<T, Comp, degree, Alloc>::count_multi(const T& key) const {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::size_type 
+b_tree<T, Comp, degree>::count_multi(const key_type& key) const noexcept {
 	iterator iter = lbound(key);
 	size_type n = 0;
 	while (iter != end() && m_comp(*iter, key)) {
@@ -1167,16 +1160,16 @@ b_tree<T, Comp, degree, Alloc>::count_multi(const T& key) const {
 	return n;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-typename b_tree<T, Comp, degree, Alloc>::size_type 
-b_tree<T, Comp, degree, Alloc>::count_unique(const T& key) const {
+template<typename T, typename Comp, degree_t degree>
+typename b_tree<T, Comp, degree>::size_type 
+b_tree<T, Comp, degree>::count_unique(const key_type& key) const noexcept {
 	return find(key) == end() ? 0 : 1;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-std::pair<typename b_tree<T, Comp, degree, Alloc>::iterator, 
-	typename b_tree<T, Comp, degree, Alloc>::iterator> 
-b_tree<T, Comp, degree, Alloc>::equal_range_unique(const T& key) {
+template<typename T, typename Comp, degree_t degree>
+std::pair<typename b_tree<T, Comp, degree>::iterator, 
+	typename b_tree<T, Comp, degree>::iterator> 
+b_tree<T, Comp, degree>::equal_range_unique(const key_type& key) noexcept {
 	iterator iter = find(key);
 	if (end() == iter) {
 		return { iter, iter };
@@ -1184,10 +1177,10 @@ b_tree<T, Comp, degree, Alloc>::equal_range_unique(const T& key) {
 	return { iter, ++iter };
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-std::pair<typename b_tree<T, Comp, degree, Alloc>::const_iterator, 
-	typename b_tree<T, Comp, degree, Alloc>::const_iterator> 
-b_tree<T, Comp, degree, Alloc>::equal_range_unique(const T& key) const {
+template<typename T, typename Comp, degree_t degree>
+std::pair<typename b_tree<T, Comp, degree>::const_iterator, 
+	typename b_tree<T, Comp, degree>::const_iterator> 
+b_tree<T, Comp, degree>::equal_range_unique(const key_type& key) const noexcept {
 	const_iterator iter = find(key);
 	if (end() == iter) {
 		return { iter, iter };
@@ -1195,49 +1188,49 @@ b_tree<T, Comp, degree, Alloc>::equal_range_unique(const T& key) const {
 	return { iter, ++iter };
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-void b_tree<T, Comp, degree, Alloc>::swap(b_tree& rhs) noexcept {
+template<typename T, typename Comp, degree_t degree>
+void b_tree<T, Comp, degree>::swap(b_tree& rhs) noexcept {
 	std::swap(m_header, rhs.m_header);
 	std::swap(m_size, rhs.m_size);
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-bool operator<(const b_tree<T, Comp, degree, Alloc>& lhs, const b_tree<T, Comp, degree, Alloc>& rhs) {
+template<typename T, typename Comp, degree_t degree>
+bool operator<(const b_tree<T, Comp, degree>& lhs, const b_tree<T, Comp, degree>& rhs) {
 	return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-bool operator>(const b_tree<T, Comp, degree, Alloc>& lhs, const b_tree<T, Comp, degree, Alloc>& rhs) {
+template<typename T, typename Comp, degree_t degree>
+bool operator>(const b_tree<T, Comp, degree>& lhs, const b_tree<T, Comp, degree>& rhs) {
 	return rhs < lhs;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-bool operator<=(const b_tree<T, Comp, degree, Alloc>& lhs, const b_tree<T, Comp, degree, Alloc>& rhs) {
+template<typename T, typename Comp, degree_t degree>
+bool operator<=(const b_tree<T, Comp, degree>& lhs, const b_tree<T, Comp, degree>& rhs) {
 	return !(rhs < lhs);
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-bool operator>=(const b_tree<T, Comp, degree, Alloc>& lhs, const b_tree<T, Comp, degree, Alloc>& rhs) {
+template<typename T, typename Comp, degree_t degree>
+bool operator>=(const b_tree<T, Comp, degree>& lhs, const b_tree<T, Comp, degree>& rhs) {
 	return !(lhs < rhs);
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-bool operator==(const b_tree<T, Comp, degree, Alloc>& lhs, const b_tree<T, Comp, degree, Alloc>& rhs) {
+template<typename T, typename Comp, degree_t degree>
+bool operator==(const b_tree<T, Comp, degree>& lhs, const b_tree<T, Comp, degree>& rhs) {
 	if (lhs.size() != rhs.size()) {
 		return false;
 	}
 	return std::equal(lhs.begin(), lhs.end(), rhs.begin());
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-bool operator!=(const b_tree<T, Comp, degree, Alloc>& lhs, const b_tree<T, Comp, degree, Alloc>& rhs) {
+template<typename T, typename Comp, degree_t degree>
+bool operator!=(const b_tree<T, Comp, degree>& lhs, const b_tree<T, Comp, degree>& rhs) {
 	return !(lhs == rhs);
 }
 
 #ifdef B_TREE_DEBUG
-template<typename T, typename Comp, degree_t degree, typename Alloc>
+template<typename T, typename Comp, degree_t degree>
 std::string 
-b_tree<T, Comp, degree, Alloc>::serialize() {
+b_tree<T, Comp, degree>::serialize() {
 	node_ptr root = static_cast<node_ptr>(m_header->parent);
 	if (nullptr == root) {
 		return "";
@@ -1274,8 +1267,8 @@ b_tree<T, Comp, degree, Alloc>::serialize() {
 	return result;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-degree_t b_tree<T, Comp, degree, Alloc>::check(b_tree_node<T>* tree) {
+template<typename T, typename Comp, degree_t degree>
+degree_t b_tree<T, Comp, degree>::check(b_tree_node<T>* tree) {
 	if (nullptr == tree) {
 		return 0;
 	}
@@ -1309,8 +1302,8 @@ degree_t b_tree<T, Comp, degree, Alloc>::check(b_tree_node<T>* tree) {
 	return h + 1;
 }
 
-template<typename T, typename Comp, degree_t degree, typename Alloc>
-bool b_tree<T, Comp, degree, Alloc>::is_balanced(b_tree_node<T>* root) {
+template<typename T, typename Comp, degree_t degree>
+bool b_tree<T, Comp, degree>::is_balanced(b_tree_node<T>* root) {
 	if (nullptr == root) {
 		return true;
 	}

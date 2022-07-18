@@ -8,6 +8,7 @@
 
 #include <functional>
 #include <iterator>
+#include "concepts.h"
 
 namespace nano {
 
@@ -17,10 +18,12 @@ namespace nano {
  * @tparam Comp 比较的仿函数类型
  * @param first 指向序列首元素的迭代器
  * @param last 指向序列尾的迭代器
- * @param comp 比较方法函数对象
+ * @param comp 比较方法
  */
-template<typename RandomAccessIter, typename Comp>
-void push_heap(RandomAccessIter first, RandomAccessIter last, Comp comp) {
+template<std::random_access_iterator RandomAccessIter, 
+		typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type>>
+void push_binary_heap(RandomAccessIter first, RandomAccessIter last, 
+		const Comp& comp = Comp()) {
     if (first == last) {
         return;
     }
@@ -35,22 +38,18 @@ void push_heap(RandomAccessIter first, RandomAccessIter last, Comp comp) {
 	}
 }
 
-template<typename RandomAccessIter>
-void push_heap(RandomAccessIter first, RandomAccessIter last) {
-    using value_type = typename std::iterator_traits<RandomAccessIter>::value_type;
-	push_heap(first, last, std::less<value_type>{});
-}
-
 /**
  * @brief 堆的调整
  * @tparam RandomAccessIter 随机访问迭代器
  * @tparam Comp 比较的仿函数类型
  * @param[in] first 指向序列首元素的迭代器
  * @param[in] last 指向序列尾的迭代器
- * @param comp 比较方法函数对象
+ * @param comp 比较方法
  */
-template<typename RandomAccessIter, typename Comp>
-void adjust_heap(RandomAccessIter first, RandomAccessIter last, Comp comp) {
+template<std::random_access_iterator RandomAccessIter, 
+		typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type>>
+void adjust_binary_heap(RandomAccessIter first, RandomAccessIter last, 
+		const Comp& comp = Comp()) {
     if (first >= last) {
         return;
     }
@@ -75,34 +74,24 @@ void adjust_heap(RandomAccessIter first, RandomAccessIter last, Comp comp) {
 	*(first + parentIndex) = value;
 }
 
-template<typename RandomAccessIter>
-void adjust_heap(RandomAccessIter first, RandomAccessIter last) {
-	using value_type = typename std::iterator_traits<RandomAccessIter>::value_type;
-    adjust_heap(first, last, std::less<value_type>{});
-}
-
 /**
  * @brief 堆的删除
  * @tparam RandomAccessIter 随机访问迭代器
  * @tparam Comp 比较的仿函数类型
  * @param[in] first 指向序列首元素的迭代器
  * @param[in] last 指向序列尾的迭代器
- * @param comp 比较方法函数对象
+ * @param comp 比较方法
  */
-template<typename RandomAccessIter, typename Comp>
-void pop_heap(RandomAccessIter first, RandomAccessIter last, Comp comp) {
+template<std::random_access_iterator RandomAccessIter, 
+	typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type>>
+void pop_binary_heap(RandomAccessIter first, RandomAccessIter last, 
+		const Comp& comp = Comp()) {
     if (first >= last) {
         return;
     }
 	--last;
 	std::swap(*first, *last);
-	adjust_heap(first, last, comp);
-}
-
-template<typename RandomAccessIter>
-void pop_heap(RandomAccessIter first, RandomAccessIter last) {
-    using value_type = typename std::iterator_traits<RandomAccessIter>::value_type;
-    pop_heap(first, last, std::less<value_type>{});
+	adjust_binary_heap(first, last, comp);
 }
 
 /**
@@ -111,10 +100,12 @@ void pop_heap(RandomAccessIter first, RandomAccessIter last) {
  * @tparam Comp 比较的仿函数类型
  * @param[in] first 指向序列首元素的迭代器
  * @param[in] last 指向序列尾的迭代器
- * @param comp 比较方法函数对象
+ * @param comp 比较方法
  */
-template<typename RandomAccessIter, typename Comp>
-void make_heap(RandomAccessIter first, RandomAccessIter last, Comp comp) {
+template<std::random_access_iterator RandomAccessIter, 
+		typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type>>
+void make_binary_heap(RandomAccessIter first, RandomAccessIter last, 
+		const Comp& comp = Comp()) {
     /**
      * 第一个元素到最后一个元素，逐个插入
      */
@@ -125,14 +116,8 @@ void make_heap(RandomAccessIter first, RandomAccessIter last, Comp comp) {
 	RandomAccessIter beg = first;
 	first += 2; //空堆和只有一个元素的堆不用调整
 	for (; first <= last; ++first) {
-		push_heap(beg, first, comp);
+		push_binary_heap(beg, first, comp);
 	}
-}
-
-template<typename RandomAccessIter>
-void make_heap(RandomAccessIter first, RandomAccessIter last) {
-    using value_type = typename std::iterator_traits<RandomAccessIter>::value_type;
-    make_heap(first, last, std::less<value_type>{});
 }
 
 /**
@@ -142,21 +127,16 @@ void make_heap(RandomAccessIter first, RandomAccessIter last) {
  * @tparam Comp 比较的仿函数类型
  * @param[in] first 指向堆首元素的迭代器
  * @param[in] last 指向堆尾的迭代器
- * @param comp 比较方法函数对象
+ * @param comp 比较方法
  */
-template<typename RandomAccessIter, typename Comp>
-void sort_heap(RandomAccessIter first, RandomAccessIter last, Comp comp) {
+template<std::random_access_iterator RandomAccessIter, 
+		typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type>>
+void sort_binary_heap(RandomAccessIter first, RandomAccessIter last, const Comp& comp = Comp()) {
 	while (first < last) {
 		std::swap(*first, *(last - 1));
         --last;
-		adjust_heap(first, last, comp);
+		adjust_binary_heap(first, last, comp);
 	}
-}
-
-template<typename RandomAccessIter>
-void sort_heap(RandomAccessIter first, RandomAccessIter last) {
-    using value_type = typename std::iterator_traits<RandomAccessIter>::value_type;
-	sort_heap(first, last, std::less<value_type>{});
 }
 
 /**
@@ -167,16 +147,12 @@ void sort_heap(RandomAccessIter first, RandomAccessIter last) {
  * @param[in] last 指向序列尾的迭代器
  * @param comp 比较方法函数对象
  */
-template<typename RandomAccessIter, typename Comp>
-void heap_sort(RandomAccessIter first, RandomAccessIter last, Comp comp) {
-	make_heap(first, last, comp);
-	sort_heap(first, last, comp);
-}
-
-template<typename RandomAccessIter>
-void heap_sort(RandomAccessIter first, RandomAccessIter last) {
-    using value_type = typename std::iterator_traits<RandomAccessIter>::value_type;
-	heap_sort(first, last, std::less<value_type>{});
+template<std::random_access_iterator RandomAccessIter, 
+		typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type>>
+void heap_sort(RandomAccessIter first, RandomAccessIter last, 
+		const Comp& comp = Comp()) {
+	make_binary_heap(first, last, comp);
+	sort_binary_heap(first, last, comp);
 }
 
 } //namespace nano

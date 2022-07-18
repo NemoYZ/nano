@@ -176,17 +176,57 @@ avl_tree_test/fast:
 .PHONY : avl_tree_test/fast
 
 #=============================================================================
-# Target rules for targets named allocator_test
+# Target rules for targets named heap_algo_test
 
 # Build rule for target.
-allocator_test: cmake_check_build_system
-	$(MAKE) -f CMakeFiles/Makefile2 allocator_test
-.PHONY : allocator_test
+heap_algo_test: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 heap_algo_test
+.PHONY : heap_algo_test
 
 # fast build rule for target.
-allocator_test/fast:
-	$(MAKE) -f CMakeFiles/allocator_test.dir/build.make CMakeFiles/allocator_test.dir/build
-.PHONY : allocator_test/fast
+heap_algo_test/fast:
+	$(MAKE) -f CMakeFiles/heap_algo_test.dir/build.make CMakeFiles/heap_algo_test.dir/build
+.PHONY : heap_algo_test/fast
+
+#=============================================================================
+# Target rules for targets named nano
+
+# Build rule for target.
+nano: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 nano
+.PHONY : nano
+
+# fast build rule for target.
+nano/fast:
+	$(MAKE) -f CMakeFiles/nano.dir/build.make CMakeFiles/nano.dir/build
+.PHONY : nano/fast
+
+src/tree.o: src/tree.cc.o
+
+.PHONY : src/tree.o
+
+# target to build an object file
+src/tree.cc.o:
+	$(MAKE) -f CMakeFiles/nano.dir/build.make CMakeFiles/nano.dir/src/tree.cc.o
+.PHONY : src/tree.cc.o
+
+src/tree.i: src/tree.cc.i
+
+.PHONY : src/tree.i
+
+# target to preprocess a source file
+src/tree.cc.i:
+	$(MAKE) -f CMakeFiles/nano.dir/build.make CMakeFiles/nano.dir/src/tree.cc.i
+.PHONY : src/tree.cc.i
+
+src/tree.s: src/tree.cc.s
+
+.PHONY : src/tree.s
+
+# target to generate assembly for a file
+src/tree.cc.s:
+	$(MAKE) -f CMakeFiles/nano.dir/build.make CMakeFiles/nano.dir/src/tree.cc.s
+.PHONY : src/tree.cc.s
 
 tests/algorithm_test.o: tests/algorithm_test.cc.o
 
@@ -214,33 +254,6 @@ tests/algorithm_test.s: tests/algorithm_test.cc.s
 tests/algorithm_test.cc.s:
 	$(MAKE) -f CMakeFiles/algorithm_test.dir/build.make CMakeFiles/algorithm_test.dir/tests/algorithm_test.cc.s
 .PHONY : tests/algorithm_test.cc.s
-
-tests/allocator_test.o: tests/allocator_test.cc.o
-
-.PHONY : tests/allocator_test.o
-
-# target to build an object file
-tests/allocator_test.cc.o:
-	$(MAKE) -f CMakeFiles/allocator_test.dir/build.make CMakeFiles/allocator_test.dir/tests/allocator_test.cc.o
-.PHONY : tests/allocator_test.cc.o
-
-tests/allocator_test.i: tests/allocator_test.cc.i
-
-.PHONY : tests/allocator_test.i
-
-# target to preprocess a source file
-tests/allocator_test.cc.i:
-	$(MAKE) -f CMakeFiles/allocator_test.dir/build.make CMakeFiles/allocator_test.dir/tests/allocator_test.cc.i
-.PHONY : tests/allocator_test.cc.i
-
-tests/allocator_test.s: tests/allocator_test.cc.s
-
-.PHONY : tests/allocator_test.s
-
-# target to generate assembly for a file
-tests/allocator_test.cc.s:
-	$(MAKE) -f CMakeFiles/allocator_test.dir/build.make CMakeFiles/allocator_test.dir/tests/allocator_test.cc.s
-.PHONY : tests/allocator_test.cc.s
 
 tests/avl_tree_test.o: tests/avl_tree_test.cc.o
 
@@ -295,6 +308,33 @@ tests/b_tree_test.s: tests/b_tree_test.cc.s
 tests/b_tree_test.cc.s:
 	$(MAKE) -f CMakeFiles/b_tree_test.dir/build.make CMakeFiles/b_tree_test.dir/tests/b_tree_test.cc.s
 .PHONY : tests/b_tree_test.cc.s
+
+tests/heap_algo_test.o: tests/heap_algo_test.cc.o
+
+.PHONY : tests/heap_algo_test.o
+
+# target to build an object file
+tests/heap_algo_test.cc.o:
+	$(MAKE) -f CMakeFiles/heap_algo_test.dir/build.make CMakeFiles/heap_algo_test.dir/tests/heap_algo_test.cc.o
+.PHONY : tests/heap_algo_test.cc.o
+
+tests/heap_algo_test.i: tests/heap_algo_test.cc.i
+
+.PHONY : tests/heap_algo_test.i
+
+# target to preprocess a source file
+tests/heap_algo_test.cc.i:
+	$(MAKE) -f CMakeFiles/heap_algo_test.dir/build.make CMakeFiles/heap_algo_test.dir/tests/heap_algo_test.cc.i
+.PHONY : tests/heap_algo_test.cc.i
+
+tests/heap_algo_test.s: tests/heap_algo_test.cc.s
+
+.PHONY : tests/heap_algo_test.s
+
+# target to generate assembly for a file
+tests/heap_algo_test.cc.s:
+	$(MAKE) -f CMakeFiles/heap_algo_test.dir/build.make CMakeFiles/heap_algo_test.dir/tests/heap_algo_test.cc.s
+.PHONY : tests/heap_algo_test.cc.s
 
 tests/mini_vector_test.o: tests/mini_vector_test.cc.o
 
@@ -363,19 +403,23 @@ help:
 	@echo "... mini_vector_test"
 	@echo "... b_tree_test"
 	@echo "... avl_tree_test"
-	@echo "... allocator_test"
+	@echo "... heap_algo_test"
+	@echo "... nano"
+	@echo "... src/tree.o"
+	@echo "... src/tree.i"
+	@echo "... src/tree.s"
 	@echo "... tests/algorithm_test.o"
 	@echo "... tests/algorithm_test.i"
 	@echo "... tests/algorithm_test.s"
-	@echo "... tests/allocator_test.o"
-	@echo "... tests/allocator_test.i"
-	@echo "... tests/allocator_test.s"
 	@echo "... tests/avl_tree_test.o"
 	@echo "... tests/avl_tree_test.i"
 	@echo "... tests/avl_tree_test.s"
 	@echo "... tests/b_tree_test.o"
 	@echo "... tests/b_tree_test.i"
 	@echo "... tests/b_tree_test.s"
+	@echo "... tests/heap_algo_test.o"
+	@echo "... tests/heap_algo_test.i"
+	@echo "... tests/heap_algo_test.s"
 	@echo "... tests/mini_vector_test.o"
 	@echo "... tests/mini_vector_test.i"
 	@echo "... tests/mini_vector_test.s"

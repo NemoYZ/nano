@@ -11,11 +11,11 @@ stdint.h
 -
 iterator
 -
+concepts.h
+../include/concepts.h
 
 ../include/algorithm.h
 algorithm
--
-concepts
 -
 heap_algo.h
 ../include/heap_algo.h
@@ -25,26 +25,38 @@ algo.h
 ../include/algo.h
 mini_vector.h
 ../include/mini_vector.h
+concepts.h
+../include/concepts.h
 assert.h
 -
-
-../include/allocator.h
-cstddef
+algorithm
 -
-construct.h
-../include/construct.h
+iostream
+-
+
+../include/concepts.h
+concepts
+-
 
 ../include/construct.h
 utility
 -
 iterator
 -
+memory
+-
+type_traits.h
+../include/type_traits.h
+concepts.h
+../include/concepts.h
 
 ../include/heap_algo.h
 functional
 -
 iterator
 -
+concepts.h
+../include/concepts.h
 
 ../include/mini_vector.h
 string.h
@@ -55,8 +67,8 @@ initializer_list
 -
 concepts
 -
-allocator.h
-../include/allocator.h
+construct.h
+../include/construct.h
 type_traits.h
 ../include/type_traits.h
 algo.h
@@ -64,6 +76,8 @@ algo.h
 
 ../include/type_traits.h
 type_traits
+-
+iterator
 -
 
 /programs/nano/tests/mini_vector_test.cc

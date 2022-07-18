@@ -48,6 +48,7 @@
         "compare": "cpp",
         "numbers": "cpp",
         "bit": "cpp",
-        "memory": "cpp"
+        "memory": "cpp",
+        "iterator": "cpp"
     }
 }

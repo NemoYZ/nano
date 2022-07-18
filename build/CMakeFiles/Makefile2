@@ -108,7 +108,7 @@ clean: CMakeFiles/algorithm_test.dir/clean
 CMakeFiles/skip_list_test.dir/all:
 	$(MAKE) -f CMakeFiles/skip_list_test.dir/build.make CMakeFiles/skip_list_test.dir/depend
 	$(MAKE) -f CMakeFiles/skip_list_test.dir/build.make CMakeFiles/skip_list_test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/programs/nano/build/CMakeFiles --progress-num=11,12 "Built target skip_list_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/programs/nano/build/CMakeFiles --progress-num=13,14 "Built target skip_list_test"
 .PHONY : CMakeFiles/skip_list_test.dir/all
 
 # Include target in all.
@@ -179,10 +179,10 @@ clean: CMakeFiles/mini_vector_test.dir/clean
 # Target rules for target CMakeFiles/b_tree_test.dir
 
 # All Build rule for target.
-CMakeFiles/b_tree_test.dir/all:
+CMakeFiles/b_tree_test.dir/all: CMakeFiles/nano.dir/all
 	$(MAKE) -f CMakeFiles/b_tree_test.dir/build.make CMakeFiles/b_tree_test.dir/depend
 	$(MAKE) -f CMakeFiles/b_tree_test.dir/build.make CMakeFiles/b_tree_test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/programs/nano/build/CMakeFiles --progress-num=7,8 "Built target b_tree_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/programs/nano/build/CMakeFiles --progress-num=5,6 "Built target b_tree_test"
 .PHONY : CMakeFiles/b_tree_test.dir/all
 
 # Include target in all.
@@ -192,7 +192,7 @@ all: CMakeFiles/b_tree_test.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/b_tree_test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /programs/nano/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /programs/nano/build/CMakeFiles 4
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/b_tree_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /programs/nano/build/CMakeFiles 0
 .PHONY : CMakeFiles/b_tree_test.dir/rule
@@ -216,10 +216,10 @@ clean: CMakeFiles/b_tree_test.dir/clean
 # Target rules for target CMakeFiles/avl_tree_test.dir
 
 # All Build rule for target.
-CMakeFiles/avl_tree_test.dir/all:
+CMakeFiles/avl_tree_test.dir/all: CMakeFiles/nano.dir/all
 	$(MAKE) -f CMakeFiles/avl_tree_test.dir/build.make CMakeFiles/avl_tree_test.dir/depend
 	$(MAKE) -f CMakeFiles/avl_tree_test.dir/build.make CMakeFiles/avl_tree_test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/programs/nano/build/CMakeFiles --progress-num=5,6 "Built target avl_tree_test"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/programs/nano/build/CMakeFiles --progress-num=3,4 "Built target avl_tree_test"
 .PHONY : CMakeFiles/avl_tree_test.dir/all
 
 # Include target in all.
@@ -229,7 +229,7 @@ all: CMakeFiles/avl_tree_test.dir/all
 
 # Build rule for subdir invocation for target.
 CMakeFiles/avl_tree_test.dir/rule: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /programs/nano/build/CMakeFiles 2
+	$(CMAKE_COMMAND) -E cmake_progress_start /programs/nano/build/CMakeFiles 4
 	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/avl_tree_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /programs/nano/build/CMakeFiles 0
 .PHONY : CMakeFiles/avl_tree_test.dir/rule
@@ -250,39 +250,76 @@ clean: CMakeFiles/avl_tree_test.dir/clean
 .PHONY : clean
 
 #=============================================================================
-# Target rules for target CMakeFiles/allocator_test.dir
+# Target rules for target CMakeFiles/heap_algo_test.dir
 
 # All Build rule for target.
-CMakeFiles/allocator_test.dir/all:
-	$(MAKE) -f CMakeFiles/allocator_test.dir/build.make CMakeFiles/allocator_test.dir/depend
-	$(MAKE) -f CMakeFiles/allocator_test.dir/build.make CMakeFiles/allocator_test.dir/build
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/programs/nano/build/CMakeFiles --progress-num=3,4 "Built target allocator_test"
-.PHONY : CMakeFiles/allocator_test.dir/all
+CMakeFiles/heap_algo_test.dir/all:
+	$(MAKE) -f CMakeFiles/heap_algo_test.dir/build.make CMakeFiles/heap_algo_test.dir/depend
+	$(MAKE) -f CMakeFiles/heap_algo_test.dir/build.make CMakeFiles/heap_algo_test.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/programs/nano/build/CMakeFiles --progress-num=7,8 "Built target heap_algo_test"
+.PHONY : CMakeFiles/heap_algo_test.dir/all
 
 # Include target in all.
-all: CMakeFiles/allocator_test.dir/all
+all: CMakeFiles/heap_algo_test.dir/all
 
 .PHONY : all
 
 # Build rule for subdir invocation for target.
-CMakeFiles/allocator_test.dir/rule: cmake_check_build_system
+CMakeFiles/heap_algo_test.dir/rule: cmake_check_build_system
 	$(CMAKE_COMMAND) -E cmake_progress_start /programs/nano/build/CMakeFiles 2
-	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/allocator_test.dir/all
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/heap_algo_test.dir/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /programs/nano/build/CMakeFiles 0
-.PHONY : CMakeFiles/allocator_test.dir/rule
+.PHONY : CMakeFiles/heap_algo_test.dir/rule
 
 # Convenience name for target.
-allocator_test: CMakeFiles/allocator_test.dir/rule
+heap_algo_test: CMakeFiles/heap_algo_test.dir/rule
 
-.PHONY : allocator_test
-
-# clean rule for target.
-CMakeFiles/allocator_test.dir/clean:
-	$(MAKE) -f CMakeFiles/allocator_test.dir/build.make CMakeFiles/allocator_test.dir/clean
-.PHONY : CMakeFiles/allocator_test.dir/clean
+.PHONY : heap_algo_test
 
 # clean rule for target.
-clean: CMakeFiles/allocator_test.dir/clean
+CMakeFiles/heap_algo_test.dir/clean:
+	$(MAKE) -f CMakeFiles/heap_algo_test.dir/build.make CMakeFiles/heap_algo_test.dir/clean
+.PHONY : CMakeFiles/heap_algo_test.dir/clean
+
+# clean rule for target.
+clean: CMakeFiles/heap_algo_test.dir/clean
+
+.PHONY : clean
+
+#=============================================================================
+# Target rules for target CMakeFiles/nano.dir
+
+# All Build rule for target.
+CMakeFiles/nano.dir/all:
+	$(MAKE) -f CMakeFiles/nano.dir/build.make CMakeFiles/nano.dir/depend
+	$(MAKE) -f CMakeFiles/nano.dir/build.make CMakeFiles/nano.dir/build
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --progress-dir=/programs/nano/build/CMakeFiles --progress-num=11,12 "Built target nano"
+.PHONY : CMakeFiles/nano.dir/all
+
+# Include target in all.
+all: CMakeFiles/nano.dir/all
+
+.PHONY : all
+
+# Build rule for subdir invocation for target.
+CMakeFiles/nano.dir/rule: cmake_check_build_system
+	$(CMAKE_COMMAND) -E cmake_progress_start /programs/nano/build/CMakeFiles 2
+	$(MAKE) -f CMakeFiles/Makefile2 CMakeFiles/nano.dir/all
+	$(CMAKE_COMMAND) -E cmake_progress_start /programs/nano/build/CMakeFiles 0
+.PHONY : CMakeFiles/nano.dir/rule
+
+# Convenience name for target.
+nano: CMakeFiles/nano.dir/rule
+
+.PHONY : nano
+
+# clean rule for target.
+CMakeFiles/nano.dir/clean:
+	$(MAKE) -f CMakeFiles/nano.dir/build.make CMakeFiles/nano.dir/clean
+.PHONY : CMakeFiles/nano.dir/clean
+
+# clean rule for target.
+clean: CMakeFiles/nano.dir/clean
 
 .PHONY : clean
 

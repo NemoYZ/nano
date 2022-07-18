@@ -1,37 +1,43 @@
 #pragma once
 
 #include <type_traits>
+#include <iterator>
 
 namespace nano {
 
 template<typename Iter>
 struct is_input_iterator {
-    constexpr static bool value = std::is_convertible<typename std::iterator_traits<Iter>::iterator_category, 
-            std::input_iterator_tag>::value;
+    constexpr static bool value = std::is_convertible_v<
+        typename std::iterator_traits<Iter>::iterator_category, 
+        std::input_iterator_tag>;
 };
 
 template<typename Iter>
 struct is_output_iterator {
-    constexpr static bool value = std::is_convertible<typename std::iterator_traits<Iter>::iterator_category, 
-            std::output_iterator_tag>::value;
+    constexpr static bool value = std::is_convertible_v<
+        typename std::iterator_traits<Iter>::iterator_category, 
+        std::output_iterator_tag>;
 };
 
 template<typename Iter>
 struct is_forward_iterator {
-    constexpr static bool value = std::is_convertible<typename std::iterator_traits<Iter>::iterator_category, 
-            std::forward_iterator_tag>::value;
+    constexpr static bool value = std::is_convertible_v<
+        typename std::iterator_traits<Iter>::iterator_category, 
+        std::forward_iterator_tag>;
 };
 
 template<typename Iter>
 struct is_bidirectional_iterator {
-    constexpr static bool value = std::is_convertible<typename std::iterator_traits<Iter>::iterator_category, 
-            std::bidirectional_iterator_tag>::value;
+    constexpr static bool value = std::is_convertible_v<
+        typename std::iterator_traits<Iter>::iterator_category, 
+        std::bidirectional_iterator_tag>;
 };
 
 template<typename Iter>
 struct is_random_access_iterator {
-    constexpr static bool value = std::is_convertible<typename std::iterator_traits<Iter>::iterator_category, 
-            std::random_access_iterator_tag>::value;
+    constexpr static bool value = std::is_convertible_v<
+        typename std::iterator_traits<Iter>::iterator_category, 
+        std::random_access_iterator_tag>;
 };
 
 template<typename Iter>

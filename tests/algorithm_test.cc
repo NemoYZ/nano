@@ -25,12 +25,13 @@ static constexpr int N = 100000000;
 void generate();
 void generate2();
 void test_sort();
+void copy_test();
 
 int main(int argc, char** argv) {
     //generate();
     //generate2();
-    double totalSpend = nano::run_time(test_sort);
-    std::cout << "共花了: " << totalSpend << "毫秒" << std::endl;
+    //double totalSpend = nano::run_time(test_sort);
+    //std::cout << "共花了: " << totalSpend << "毫秒" << std::endl;
     /*
     for (int num : nums) {
         std::cout << num << " ";
@@ -38,7 +39,8 @@ int main(int argc, char** argv) {
     std::cout << std::endl;
     */
     //assert(std::is_sorted(nums.begin(), nums.end()));
-    assert(std::is_sorted(nums2.begin(), nums2.end()));
+    //assert(std::is_sorted(nums2.begin(), nums2.end()));
+    //copy_test();
 
     return 0;
 }
@@ -83,7 +85,7 @@ void generate2() {
 }
 
 void test_sort() {
-    //nano::introsort(nums.begin(), nums.end());
+    nano::intro_sort(nums.begin(), nums.end());
     //nano::binary_insert_sort(nums.begin(), nums.end());
     nano::tim_sort(nums2.begin(), nums2.end(), [](const std::pair<int, int>& lhs, const std::pair<int, int>& rhs) {
         return lhs.first < rhs.first;
@@ -97,4 +99,18 @@ void test_sort() {
     assert(std::is_sorted(lst.begin(), lst.end()));
     assert(std::is_sorted(nums.begin(), nums.end()));
     */
+}
+
+void copy_test() {
+    std::vector<std::string> vec1{"My", "name", "is", "Van"};
+    std::vector<std::string> vec2;
+    nano::move_copy(vec1.begin(), vec1.end(), std::back_insert_iterator(vec2));
+    for (const auto& str : vec1) {
+        std::cout << str << " ";
+    }
+    std::cout << std::endl;
+    for (const auto& str : vec2) {
+        std::cout << str << " ";
+    }
+    std::cout << std::endl;
 }

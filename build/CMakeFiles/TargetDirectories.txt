@@ -5,4 +5,5 @@
 /programs/nano/build/CMakeFiles/mini_vector_test.dir
 /programs/nano/build/CMakeFiles/b_tree_test.dir
 /programs/nano/build/CMakeFiles/avl_tree_test.dir
-/programs/nano/build/CMakeFiles/allocator_test.dir
+/programs/nano/build/CMakeFiles/heap_algo_test.dir
+/programs/nano/build/CMakeFiles/nano.dir

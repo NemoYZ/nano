@@ -15,6 +15,7 @@ set(CMAKE_CXX_TARGET_INCLUDE_PATH
 
 # Targets to which this target links.
 set(CMAKE_TARGET_LINKED_INFO_FILES
+  "/programs/nano/build/CMakeFiles/nano.dir/DependInfo.cmake"
   )
 
 # Fortran module output directory.

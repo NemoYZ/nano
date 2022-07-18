@@ -6,12 +6,6 @@
 
 #IncludeRegexTransform: 
 
-../include/allocator.h
-cstddef
--
-construct.h
-../include/construct.h
-
 ../include/b_tree.h
 stdint.h
 -
@@ -31,11 +25,17 @@ tree.h
 ../include/tree.h
 iterator
 -
-allocator.h
-../include/allocator.h
+construct.h
+../include/construct.h
 type_traits.h
 ../include/type_traits.h
+utility.h
+../include/utility.h
 iostream
+-
+
+../include/concepts.h
+concepts
 -
 
 ../include/construct.h
@@ -43,6 +43,12 @@ utility
 -
 iterator
 -
+memory
+-
+type_traits.h
+../include/type_traits.h
+concepts.h
+../include/concepts.h
 
 ../include/node.h
 
@@ -57,6 +63,8 @@ algorithm
 -
 unistd.h
 -
+iostream
+-
 
 ../include/tree_node.h
 node.h
@@ -66,6 +74,8 @@ stdint.h
 
 ../include/type_traits.h
 type_traits
+-
+iterator
 -
 
 ../include/utility.h

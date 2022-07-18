@@ -6,21 +6,25 @@
 
 #IncludeRegexTransform: 
 
-../include/allocator.h
-cstddef
+../include/concepts.h
+concepts
 -
-construct.h
-../include/construct.h
 
 ../include/construct.h
 utility
 -
 iterator
 -
+memory
+-
+type_traits.h
+../include/type_traits.h
+concepts.h
+../include/concepts.h
 
 ../include/skip_list.h
-allocator.h
-../include/allocator.h
+construct.h
+../include/construct.h
 iterator
 -
 utility.h
@@ -31,9 +35,13 @@ initializer_list
 -
 type_traits.h
 ../include/type_traits.h
+concepts.h
+../include/concepts.h
 
 ../include/type_traits.h
 type_traits
+-
+iterator
 -
 
 ../include/utility.h

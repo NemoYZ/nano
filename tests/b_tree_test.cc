@@ -10,7 +10,7 @@
 #include <unordered_set>
 #include <limits.h>
 
-constexpr static int N = 100000;
+constexpr static int N = 10;
 
 static nano::b_tree<int> bTree;
 static std::default_random_engine e;
@@ -44,7 +44,7 @@ int main(int argc, char** argv) {
     //test_find();
     //assert(is_unique());
     //assert(is_multi());
-    test_erase();
+    //test_erase();
     //std::cout << bTree.serialize() << std::endl;
     /*
     assert(bTree.size() == nums.size());
@@ -77,6 +77,22 @@ int main(int argc, char** argv) {
         index = myPair.second;
     }
     */
+
+    auto bTree2 = bTree;
+    std::cout << "bTree.size()=" << bTree.size() 
+            << " bTree2.size()=" << bTree2.size() 
+            << std::endl;
+    for (auto iter = bTree.begin();
+        iter != bTree.end(); ++iter) {
+        std::cout << *iter << " " << std::flush;
+    }
+    std::cout << std::endl;
+    for (auto iter = bTree2.begin();
+        iter != bTree2.end(); ++iter) {
+        std::cout << *iter << " " << std::flush;
+    }
+    std::cout << std::endl;
+    assert(bTree2 == bTree);
 
     return 0;
 }

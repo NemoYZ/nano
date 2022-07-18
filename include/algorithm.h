@@ -1,16 +1,14 @@
 #pragma once
 
 #include <algorithm>
-
-#if __cpluscplus >= 202002L
-#include <concepts>
-#endif //__cpluscplus >= 202002L
-
 #include "heap_algo.h"
 #include "type_traits.h"
 #include "algo.h"
 #include "mini_vector.h"
+#include "concepts.h"
 #include <assert.h>
+#include <algorithm>
+#include <iostream>
 
 namespace nano {
 
@@ -25,21 +23,18 @@ OutputIter move_merge(InputIter first1, InputIter last1,
 }
 
 /**
- * @brief 
- * 
- * @tparam RandomAccessIter 
+ * @brief 插入排序二分搜索优化版
+ * @tparam td::random_access_iterator 
  * @tparam std::less<typename std::iterator_traits<RandomAccessIter>::value_type> 
  * @param first 
  * @param last 
  * @param comp 
- * @attention [first, start] should sorted
  */
-template<typename RandomAccessIter, typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type> >
-void __binary_insert_sort_unchecked(RandomAccessIter first, RandomAccessIter last, RandomAccessIter start,
-        const Comp& comp = Comp()) {
-    if (first == start) {
-        ++start;
-    }
+
+template<std::random_access_iterator RandomAccessIter, 
+        typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type> >
+void binary_insert_sort_dispatch(RandomAccessIter first, RandomAccessIter last, 
+        RandomAccessIter start, const Comp& comp = Comp()) {
     for (; start != last; ++start) {
         RandomAccessIter pos = std::upper_bound(first, start, *start, comp);
         for (RandomAccessIter iter2 = start; iter2 != pos; --iter2) {
@@ -48,18 +43,29 @@ void __binary_insert_sort_unchecked(RandomAccessIter first, RandomAccessIter las
     }
 }
 
-template<typename BindirectionIter, typename Comp = std::less<typename std::iterator_traits<BindirectionIter>::value_type> >
-void __linear_insert_sort_unchecked(BindirectionIter first, BindirectionIter last, 
+template<std::random_access_iterator RandomAccessIter, 
+        typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type> >
+void binary_insert_sort(RandomAccessIter first, RandomAccessIter last, 
         const Comp& comp = Comp()) {
-    if (first >= last) {
-        return;
-    }
+    RandomAccessIter start = std::is_sorted_until(first, last);
+    binary_insert_sort_dispatch(first, last, start, comp);
+}
 
-    BindirectionIter start = first;
-    ++first;
-    for (; first != last; ++first) {
-        for (BindirectionIter iter1 = first; iter1 != start;) {
-            BindirectionIter prev = iter1;
+/**
+ * @brief 线性插入排序
+ * @tparam BidirectionIter 
+ * @tparam std::less<typename std::iterator_traits<BidirectionIter>::value_type> 
+ * @param first 
+ * @param last 
+ * @param comp 
+ */
+template<std::bidirectional_iterator BidirectionIter, 
+        typename Comp = std::less<typename std::iterator_traits<BidirectionIter>::value_type> >
+void linear_insert_sort_dispatch(BidirectionIter first, BidirectionIter last, 
+        BidirectionIter start, const Comp& comp = Comp()) {
+    for (; start != last; ++start) {
+        for (BidirectionIter iter1 = start; iter1 != first;) {
+            BidirectionIter prev = iter1;
             --prev;
             if (comp(*iter1, *prev)) {
                 std::swap(*iter1, *prev);
@@ -71,44 +77,43 @@ void __linear_insert_sort_unchecked(BindirectionIter first, BindirectionIter las
     }
 }
 
-template<typename RandomAccessIter, typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type> >
-void binary_insert_sort(RandomAccessIter first, RandomAccessIter last, 
+template<std::bidirectional_iterator BidirectionIter, 
+        typename Comp = std::less<typename std::iterator_traits<BidirectionIter>::value_type> >
+void linear_insert_sort(BidirectionIter first, BidirectionIter last, 
         const Comp& comp = Comp()) {
-    static_assert(is_random_access_iterator_v<RandomAccessIter>,
-            "random access iterator required");
-    //TODO: skip sorted part
-    __binary_insert_sort_unchecked(first, last, first, comp);
-}
-
-template<typename BindirectionIter, typename Comp = std::less<typename std::iterator_traits<BindirectionIter>::value_type> >
-void linear_insert_sort(BindirectionIter first, BindirectionIter last, 
-        const Comp& comp = Comp()) {
-    static_assert(is_bidirectional_iterator_v<BindirectionIter>, 
-            "bidirectional iterator required");
-    __linear_insert_sort_unchecked(first, last, comp);
+    BidirectionIter start = std::is_sorted_until(first, last, comp);
+    linear_insert_sort_dispatch(first, last, start, comp);
 }
 
 /**
- * @brief 
+ * @brief 插入排序
  * @tparam Iter 
  * @tparam std::less<typename std::iterator_traits<Iter>::value_type> 
  * @param first 
  * @param last 
  * @param comp 
- * @attention C++17 required
  */
 template<typename Iter, typename Comp = std::less<typename std::iterator_traits<Iter>::value_type> >
 void insert_sort(Iter first, Iter last, const Comp& comp = Comp()) {
-    static_assert(is_random_access_iterator_v<Iter>, "random access or bidirectional iterator required");
+    static_assert(is_bidirectional_iterator_v<Iter>, "random access or bidirectional iterator required");
 
     if constexpr(is_random_access_iterator_v<Iter>) {
-        __binary_insert_sort_unchecked(first, last, comp);
+        binary_insert_sort(first, last, comp);
     } else {
-        __linear_insert_sort_unchecked(first, last, comp);
+        linear_insert_sort(first, last, comp);
     }
 }
 
-template<typename RandomAccessIter, typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type> >
+/**
+ * @brief 希尔排序
+ * @tparam RandomAccessIter 
+ * @tparam std::less<typename std::iterator_traits<RandomAccessIter>::value_type> 
+ * @param first 
+ * @param last 
+ * @param comp 
+ */
+template<std::random_access_iterator RandomAccessIter, 
+        typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type>>
 void shell_sort(RandomAccessIter first, RandomAccessIter last, 
         const Comp& comp = Comp()) {
     using DiffType = typename std::iterator_traits<RandomAccessIter>::difference_type;
@@ -127,13 +132,18 @@ void shell_sort(RandomAccessIter first, RandomAccessIter last,
     }
 }
 
-#if __cplusplus >= 201703L
-inline static constexpr int MAX_DEPTH = 32;
-#else
-enum { MAX_DEPTH = 32 };
-#endif //__cpluscplus >= 201703L
-
-template<typename Iterator, typename Comp = std::less<typename std::iterator_traits<Iterator>::value_type> >
+/**
+ * @brief 把a, b, c中间值移动到result
+ * 
+ * @tparam Iterator 
+ * @tparam std::less<typename std::iterator_traits<Iterator>::value_type> 
+ * @param result
+ * @param a 
+ * @param b 
+ * @param c 
+ * @param comp 
+ */
+template<typename Iterator, typename Comp = std::less<typename std::iterator_traits<Iterator>::value_type>>
 void move_median_to_first(Iterator result, Iterator a, Iterator b,
         Iterator c, Comp comp = Comp()) {
     if (comp(*a, *b)) {
@@ -153,7 +163,8 @@ void move_median_to_first(Iterator result, Iterator a, Iterator b,
     }
 }
 
-template<typename RandomAccessIter, typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type> >
+template<std::random_access_iterator RandomAccessIter, 
+        typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type> >
 RandomAccessIter unguarded_partition(RandomAccessIter first,
         RandomAccessIter last, RandomAccessIter pivot, Comp comp = Comp()) {
     while (true) {
@@ -172,7 +183,8 @@ RandomAccessIter unguarded_partition(RandomAccessIter first,
     }
 }
 
-template<typename RandomAccessIter, typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type>>
+template<std::random_access_iterator RandomAccessIter, 
+        typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type>>
 inline RandomAccessIter unguarded_partition_pivot(RandomAccessIter first,
         RandomAccessIter last, Comp comp = Comp()) {
     RandomAccessIter mid = first + (last - first) / 2;
@@ -180,12 +192,19 @@ inline RandomAccessIter unguarded_partition_pivot(RandomAccessIter first,
     return unguarded_partition(first + 1, last, first, comp);
 }
 
-template<typename RandomAccessIter, typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type> >
+/**
+ * @brief 快速排序递归最大深度
+ * @attention C++17 required
+ */
+inline static constexpr int MAX_DEPTH = 32;
+
+template<std::random_access_iterator RandomAccessIter, 
+        typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type> >
 void introsort_dispatch(RandomAccessIter first, RandomAccessIter last, 
         int depth_limit, const Comp& comp = Comp()) {
     while (last - first > MAX_DEPTH) {
         if (0 == depth_limit) { //递归到一定深度，转为堆排序
-	        std::partial_sort(first, last, last, comp);
+	        heap_sort(first, last, comp);
 	        return;
 	    }
 	    --depth_limit;
@@ -193,17 +212,29 @@ void introsort_dispatch(RandomAccessIter first, RandomAccessIter last,
 	    introsort_dispatch(cut, last, depth_limit, comp);
 	    last = cut;
     }
-    //insert_sort(first, last, comp);
-    linear_insert_sort(first, last, comp);
+    insert_sort(first, last, comp);
 }
 
-
-template<typename RandomAccessIter, typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type> >
-void introsort(RandomAccessIter first, RandomAccessIter last, const Comp& comp = Comp()) {
+/**
+ * @brief 内省排序
+ * @tparam RandomAccessIter 
+ * @tparam std::less<typename std::iterator_traits<RandomAccessIter>::value_type> 
+ * @param first 
+ * @param last 
+ * @param comp 
+ */
+template<std::random_access_iterator RandomAccessIter, 
+        typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type> >
+void intro_sort(RandomAccessIter first, RandomAccessIter last, const Comp& comp = Comp()) {
     introsort_dispatch(first, last, log2(last - first) * 2, comp);
 }
 
-template<typename RandomAccessIter, 
+/**
+ * @brief timsort, 参考jdk1.8
+ * @tparam RandomAccessIter 
+ * @tparam std::less<typename std::iterator_traits<RandomAccessIter>::value_type> 
+ */
+template<std::random_access_iterator RandomAccessIter, 
         typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type>>
 struct __TimSort{
 public:
@@ -231,7 +262,7 @@ public:
         DiffType nRemaining = last - first;
         if (nRemaining < MIN_MERGE) {
             DiffType initRunLen = __count_and_make_run(first, last);
-            __binary_insert_sort_unchecked(first, last, first + initRunLen);
+            binary_insert_sort_dispatch(first, last, first + initRunLen, m_comp);
             return;
         }
 
@@ -246,7 +277,7 @@ public:
             // If run is short, extend to min(minRun, nRemaining)
             if (runLen < minRun) {
                 DiffType force = nRemaining <= minRun ? nRemaining : minRun;
-                __binary_insert_sort_unchecked(first, first + force, first + runLen);
+                binary_insert_sort_dispatch(first, first + force, first + runLen, m_comp);
                 runLen = force;
             }
 
@@ -263,6 +294,9 @@ public:
     }
 
 private:
+    /**
+     * @brief for debug
+     */
     template<typename OutputIter>
     void printSequence(OutputIter first, OutputIter last) {
         OutputIter statr = first;
@@ -328,7 +362,7 @@ private:
      * @param hint 
      * @return RandomAccessIter 
      */
-    template<typename RIter>
+    template<std::random_access_iterator RIter>
     RIter __gallop_left(const VType& key, RIter first, RIter last, 
             RIter hint) {
         DiffType lastOfs = 0;
@@ -382,7 +416,7 @@ private:
      * @param hint 
      * @return RIter 
      */
-    template<typename RIter>
+    template<std::random_access_iterator RIter>
     RIter __gallop_right(const VType& key, RIter first, RIter last, 
             RIter hint) {
         DiffType ofs = 1;
@@ -722,7 +756,7 @@ private:
     }
 
 private:
-    mini_vector<std::pair<DiffType, DiffType>> m_runStack; //position --> len
+    mini_vector<std::pair<DiffType, DiffType>> m_runStack; //position -> len
     mini_vector<VType> m_tmp;
     int m_minGallop;
     //for debug
@@ -731,11 +765,9 @@ private:
     Comp m_comp;
 };
 
-template<typename RandomAccessIter, 
+template<std::random_access_iterator RandomAccessIter, 
         typename Comp = std::less<typename std::iterator_traits<RandomAccessIter>::value_type>>
 void tim_sort(RandomAccessIter first, RandomAccessIter last, const Comp& comp = Comp()) {
-    static_assert(is_random_access_iterator_v<RandomAccessIter>, 
-            "random access iterator required");
     __TimSort<RandomAccessIter, Comp> __timsort(comp);
     __timsort.sort(first, last);
 }

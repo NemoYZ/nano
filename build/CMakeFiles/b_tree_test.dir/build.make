@@ -79,6 +79,7 @@ b_tree_test_EXTERNAL_OBJECTS =
 
 ../bin/b_tree_test: CMakeFiles/b_tree_test.dir/tests/b_tree_test.cc.o
 ../bin/b_tree_test: CMakeFiles/b_tree_test.dir/build.make
+../bin/b_tree_test: ../lib/libnano.so
 ../bin/b_tree_test: CMakeFiles/b_tree_test.dir/link.txt
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/programs/nano/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable ../bin/b_tree_test"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/b_tree_test.dir/link.txt --verbose=$(VERBOSE)
