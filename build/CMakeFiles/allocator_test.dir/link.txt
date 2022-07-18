@@ -1,1 +1,0 @@
-/apps/Nemo/bin/c++  -rdynamic -Og -ggdb -std=c++20 -Wno-deprecated -Werror -Wall -Wno-unused-function -Wno-builtin-macro-redefined  -rdynamic CMakeFiles/allocator_test.dir/tests/allocator_test.cc.o  -o ../bin/allocator_test 

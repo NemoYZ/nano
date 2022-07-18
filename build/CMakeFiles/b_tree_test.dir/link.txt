@@ -1,1 +1,0 @@
-/apps/Nemo/bin/c++  -rdynamic -Og -ggdb -std=c++20 -Wno-deprecated -Werror -Wall -Wno-unused-function -Wno-builtin-macro-redefined  -rdynamic CMakeFiles/b_tree_test.dir/tests/b_tree_test.cc.o  -o ../bin/b_tree_test -Wl,-rpath,/programs/nano/lib ../lib/libnano.so 

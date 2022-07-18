@@ -1,1 +1,0 @@
-/apps/Nemo/bin/c++  -rdynamic -Og -ggdb -std=c++20 -Wno-deprecated -Werror -Wall -Wno-unused-function -Wno-builtin-macro-redefined  -rdynamic CMakeFiles/mini_vector_test.dir/tests/mini_vector_test.cc.o  -o ../bin/mini_vector_test 

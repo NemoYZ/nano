@@ -5,8 +5,9 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
+ 
 
-# Make data base, printed on Mon Jul 18 15:56:50 2022
+# Make data base, printed on Mon Jul 18 18:04:40 2022
 
 # Variables
 
@@ -45,7 +46,7 @@ LESSOPEN = ||/usr/bin/lesspipe.sh %s
 # environment
 VSCODE_CWD = /home/Nemo
 # environment
-SSH_CONNECTION = 192.168.66.1 55898 192.168.66.3 22
+SSH_CONNECTION = 192.168.66.1 53663 192.168.66.3 22
 # environment
 PATH = /home/Nemo/.vscode-server/bin/b06ae3b2d2dbfe28bca3134cc6be65935cdfea6a/bin/remote-cli:/home/Nemo/.cache/activestate/bin:/home/Nemo/.local/ActiveState/StateTool/release:/apps/Nemo/bin:/usr/local/bin:/usr/bin:/home/Nemo/bin:/usr/local/sbin:/usr/sbin
 # environment
@@ -65,7 +66,7 @@ LS_COLORS =
 # environment
 PWD = /programs/nano
 # environment
-VSCODE_IPC_HOOK_CLI = /run/user/1000/vscode-ipc-1eb96967-73e9-41d8-85c3-b7f681d418f3.sock
+VSCODE_IPC_HOOK_CLI = /run/user/1000/vscode-ipc-95cb58d0-a0df-41d4-8a9f-68ecdfb004ee.sock
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
@@ -119,7 +120,7 @@ MAKEFLAGS = Rrqp
 # environment
 MFLAGS = -Rrqp
 # environment
-SSH_CLIENT = 192.168.66.1 55898 22
+SSH_CLIENT = 192.168.66.1 53663 22
 # environment
 MAIL = /var/spool/mail/Nemo
 # automatic
@@ -275,6 +276,6 @@ Makefile:
 
 # strcache hash-table stats:
 # Load=24/8192=0%, Rehash=0, Collisions=1/32=3%
-# Finished Make data base on Mon Jul 18 15:56:50 2022
+# Finished Make data base on Mon Jul 18 18:04:40 2022
 
  
