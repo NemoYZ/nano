@@ -49,6 +49,10 @@
         "numbers": "cpp",
         "bit": "cpp",
         "memory": "cpp",
-        "iterator": "cpp"
+        "iterator": "cpp",
+        "thread": "cpp",
+        "atomic": "cpp",
+        "semaphore": "cpp",
+        "stop_token": "cpp"
     }
 }

@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 #include <iterator>
+#include <bit>
+#include <algorithm>
 #include "concepts.h"
 
 namespace nano {
@@ -27,27 +29,10 @@ T log2(T n) {
  * @param n 
  * @return uint32_t 
  */
-uint32_t ceil_power_of_2(uint32_t n) {
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-    ++n;
-    return n;
+template<std::integral T>
+constexpr T ceil_power_of_2(T n) {
+    return n ? std::bit_ceil(n) : 0;
 }
-
-uint64_t ceil_power_of_2(uint64_t n) {
-    n |= n >> 1;
-    n |= n >> 2;
-    n |= n >> 4;
-    n |= n >> 8;
-    n |= n >> 16;
-    n |= n >> 32;
-    ++n;
-    return n;
-}
-
 /**
  * @brief 移动拷贝
  * @tparam InputIter 

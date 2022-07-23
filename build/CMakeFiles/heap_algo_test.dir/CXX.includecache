@@ -11,12 +11,14 @@ stdint.h
 -
 iterator
 -
+bit
+-
+algorithm
+-
 concepts.h
 ../include/concepts.h
 
 ../include/algorithm.h
-algorithm
--
 heap_algo.h
 ../include/heap_algo.h
 type_traits.h
@@ -29,7 +31,7 @@ concepts.h
 ../include/concepts.h
 assert.h
 -
-algorithm
+functional
 -
 iostream
 -

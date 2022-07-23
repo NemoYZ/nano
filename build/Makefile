@@ -124,6 +124,19 @@ algorithm_test/fast:
 .PHONY : algorithm_test/fast
 
 #=============================================================================
+# Target rules for targets named hash_table_test
+
+# Build rule for target.
+hash_table_test: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 hash_table_test
+.PHONY : hash_table_test
+
+# fast build rule for target.
+hash_table_test/fast:
+	$(MAKE) -f CMakeFiles/hash_table_test.dir/build.make CMakeFiles/hash_table_test.dir/build
+.PHONY : hash_table_test/fast
+
+#=============================================================================
 # Target rules for targets named skip_list_test
 
 # Build rule for target.
@@ -309,6 +322,33 @@ tests/b_tree_test.cc.s:
 	$(MAKE) -f CMakeFiles/b_tree_test.dir/build.make CMakeFiles/b_tree_test.dir/tests/b_tree_test.cc.s
 .PHONY : tests/b_tree_test.cc.s
 
+tests/hash_table_test.o: tests/hash_table_test.cc.o
+
+.PHONY : tests/hash_table_test.o
+
+# target to build an object file
+tests/hash_table_test.cc.o:
+	$(MAKE) -f CMakeFiles/hash_table_test.dir/build.make CMakeFiles/hash_table_test.dir/tests/hash_table_test.cc.o
+.PHONY : tests/hash_table_test.cc.o
+
+tests/hash_table_test.i: tests/hash_table_test.cc.i
+
+.PHONY : tests/hash_table_test.i
+
+# target to preprocess a source file
+tests/hash_table_test.cc.i:
+	$(MAKE) -f CMakeFiles/hash_table_test.dir/build.make CMakeFiles/hash_table_test.dir/tests/hash_table_test.cc.i
+.PHONY : tests/hash_table_test.cc.i
+
+tests/hash_table_test.s: tests/hash_table_test.cc.s
+
+.PHONY : tests/hash_table_test.s
+
+# target to generate assembly for a file
+tests/hash_table_test.cc.s:
+	$(MAKE) -f CMakeFiles/hash_table_test.dir/build.make CMakeFiles/hash_table_test.dir/tests/hash_table_test.cc.s
+.PHONY : tests/hash_table_test.cc.s
+
 tests/heap_algo_test.o: tests/heap_algo_test.cc.o
 
 .PHONY : tests/heap_algo_test.o
@@ -399,6 +439,7 @@ help:
 	@echo "... rebuild_cache"
 	@echo "... algorithm_test"
 	@echo "... edit_cache"
+	@echo "... hash_table_test"
 	@echo "... skip_list_test"
 	@echo "... mini_vector_test"
 	@echo "... b_tree_test"
@@ -417,6 +458,9 @@ help:
 	@echo "... tests/b_tree_test.o"
 	@echo "... tests/b_tree_test.i"
 	@echo "... tests/b_tree_test.s"
+	@echo "... tests/hash_table_test.o"
+	@echo "... tests/hash_table_test.i"
+	@echo "... tests/hash_table_test.s"
 	@echo "... tests/heap_algo_test.o"
 	@echo "... tests/heap_algo_test.i"
 	@echo "... tests/heap_algo_test.s"

@@ -1,13 +1,12 @@
 #pragma once
 
-#include <algorithm>
 #include "heap_algo.h"
 #include "type_traits.h"
 #include "algo.h"
 #include "mini_vector.h"
 #include "concepts.h"
 #include <assert.h>
-#include <algorithm>
+#include <functional>
 #include <iostream>
 
 namespace nano {

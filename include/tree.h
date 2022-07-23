@@ -132,20 +132,20 @@ inline tree_node_base* right_left_rotate(tree_node_base* node, tree_node_base** 
 
 /**
  * @brief 用node2来替代node1
- * @param[in] node1 被替代的结点
- * @param[in] node2 替代结点
+ * @param[in] taregt 被替代的结点
+ * @param[in] repNode 替代结点
  * @param[in] root 树根
  */
-inline void transplant(tree_node_base* node1, tree_node_base* node2, tree_node_base** root) {
-	if (node2) {
-		node2->parent = node1->parent;
+inline void transplant(tree_node_base* taregt, tree_node_base* repNode, tree_node_base** root) {
+	if (repNode) {
+		repNode->parent = taregt->parent;
 	}
-	if (nullptr == node1->parent || node1 == *root) { //根结点
-		*root = node2;
-	} else if (node1 == node1->parent->left) {
-		node1->parent->left = node2;
+	if (nullptr == taregt->parent || taregt == *root) { //根结点
+		*root = repNode;
+	} else if (taregt == taregt->parent->left) {
+		taregt->parent->left = repNode;
 	} else {
-		node1->parent->right = node2;
+		taregt->parent->right = repNode;
 	}
 }
 
