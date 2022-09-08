@@ -54,7 +54,7 @@ uint32_t murmurhash2 (const void* key, int len, unsigned int seed) {
 
 	return h;
 } 
-#define HASH_FUNCTION(Type)                         \
+#define HASH_FUNCTION_INTEGRAL(Type)                \
 template<>                                          \
 struct hash_value<Type> {                           \
     uint32_t operator()(Type v) const noexcept {    \
@@ -123,11 +123,11 @@ HASH_FUNCTION_INTEGRAL(signed char);
 
 HASH_FUNCTION_INTEGRAL(unsigned char);
 
-//HASH_FUNCTION(wchar_t);
+//HASH_FUNCTION_INTEGRAL(wchar_t);
 
-//HASH_FUNCTION(char16_t);
+//HASH_FUNCTION_INTEGRAL(char16_t);
 
-//HASH_FUNCTION(char32_t);
+//HASH_FUNCTION_INTEGRAL(char32_t);
 
 HASH_FUNCTION_INTEGRAL(short);
 
@@ -177,36 +177,21 @@ struct hash_value<long double> {
 template<>
 struct hash_value<const char*> {
     HASH_RESULT_TYPE operator()(const char* str) const noexcept {
-        HASH_RESULT_TYPE result = 0;
-        while (*str != '\0') {
-            result += *str * 5;
-            ++str;
-        }
-        return result;
+        return murmurhash2(str, strlen(str), 0);
     };
 };
 
 template<>
 struct hash_value<const signed char*> {
     HASH_RESULT_TYPE operator()(const signed char* str) const noexcept {
-        HASH_RESULT_TYPE result = 0;
-        while (*str != '\0') {
-            result += *str * 5;
-            ++str;
-        }
-        return result;
+        return hash_value<const char*>()(reinterpret_cast<const char*>(str));
     };
 };
 
 template<>
 struct hash_value<const unsigned char*> {
     HASH_RESULT_TYPE operator()(const unsigned char* str) const noexcept {
-        HASH_RESULT_TYPE result = 0;
-        while (*str != '\0') {
-            result += *str * 5;
-            ++str;
-        }
-        return result;
+        return hash_value<const char*>()(reinterpret_cast<const char*>(str));
     };
 };
 
