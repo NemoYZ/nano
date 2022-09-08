@@ -136,17 +136,44 @@ inline tree_node_base* right_left_rotate(tree_node_base* node, tree_node_base** 
  * @param[in] repNode 替代结点
  * @param[in] root 树根
  */
-inline void transplant(tree_node_base* taregt, tree_node_base* repNode, tree_node_base** root) {
+inline tree_node_base* 
+transplant(tree_node_base* target, tree_node_base* repNode, tree_node_base** root) {
 	if (repNode) {
-		repNode->parent = taregt->parent;
+		repNode->parent = target->parent;
 	}
-	if (nullptr == taregt->parent || taregt == *root) { //根结点
+	if (nullptr == parent_of(target) || target == *root) { //根结点
 		*root = repNode;
-	} else if (taregt == taregt->parent->left) {
-		taregt->parent->left = repNode;
+	} else if (target == left_of(parent_of(target))) {
+		target->parent->left = repNode;
 	} else {
-		taregt->parent->right = repNode;
+		target->parent->right = repNode;
 	}
+
+	return *root;
+}
+
+/**
+ * @brief 二叉树最左子节点
+ * @param root 
+ * @return tree_node_base* 
+ */
+tree_node_base* left_most(tree_node_base* root);
+
+/**
+ * @brief 二叉树最右边节点
+ * 
+ * @param root 
+ * @return tree_node_base* 
+ */
+tree_node_base* right_most(tree_node_base* root);
+
+/**
+ * @brief 二叉搜索树最小值节点
+ * @param root 
+ * @return tree_node_base* 
+ */
+inline tree_node_base* min_node(tree_node_base* root) {
+	return left_most(root);
 }
 
 /**
@@ -154,14 +181,9 @@ inline void transplant(tree_node_base* taregt, tree_node_base* repNode, tree_nod
  * @param root 
  * @return tree_node_base* 
  */
-tree_node_base* max_node(tree_node_base* root);
-
-/**
- * @brief 二叉搜索树最小值节点
- * @param root 
- * @return tree_node_base* 
- */
-tree_node_base* min_node(tree_node_base* root);
+inline tree_node_base* max_node(tree_node_base* root) {
+	return right_most(root);
+}
 
 /**
  * @brief 二叉搜索树某节点的后继节点
@@ -178,6 +200,90 @@ tree_node_base* successor(tree_node_base* node);
 tree_node_base* precursor(tree_node_base* node);
 
 bool is_balanced(tree_node_base* root);
+
+template<typename Func>
+void __preorder(tree_node_base* node, const Func& f) {
+	if (nullptr == node) {
+		return;
+	}
+	f(node);
+	__preorder(node->left, f);
+	node = node->right;
+	while (node) {
+		f(node);
+		if (node->left) {
+			__preorder(node->left, f);
+		}
+		node = node->right;
+	}
+}
+
+/**
+ * @brief 二叉树的先序遍历
+ * 
+ * @tparam Func 
+ * @param root 
+ * @param f 
+ */
+template<typename Func>
+void preorder(tree_node_base* root, const Func& f) {
+	__preorder(root, nullptr, f);
+}
+
+template<typename Func>
+void __inorder(tree_node_base* node, const Func& f) {
+	if (nullptr == node) {
+            return;
+	}
+	__inorder(node->left, f);
+	f(node);
+	node = node->right;
+	while (node) {
+		if (node->left) {
+			__inorder(node->left, f);
+		}
+		f(node);
+		node = node->right;
+	}
+}
+
+/**
+ * @brief 二叉树的中序遍历
+ * 
+ * @tparam Func 
+ * @param root 
+ * @param f 
+ */
+template<typename Func>
+void inorder(tree_node_base* root, const Func& f) {
+	__inorder(root, f);
+}
+
+template<typename Func>
+void __postorder(tree_node_base* node, tree_node_base* root, const Func& f) {
+	if (nullptr == node) {
+        return;
+	}
+	node = left_most(node);
+	while (node != root) {
+		tree_node_base* nparent = node->parent;
+		__postorder(node->right, node, f);
+		f(node);
+		node = nparent;
+	}
+}
+
+/**
+ * @brief 二叉树的后序遍历
+ * 
+ * @tparam Func 
+ * @param root 
+ * @param f 
+ */
+template<typename Func>
+void postorder(tree_node_base* root, const Func& f) {
+	__postorder(root, nullptr, f);
+}
 
 template<typename CopyFun>
 tree_node_base* __copy_since(tree_node_base* node1, 

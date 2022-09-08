@@ -111,6 +111,19 @@ depend:
 .PHONY : depend
 
 #=============================================================================
+# Target rules for targets named rb_tree_test
+
+# Build rule for target.
+rb_tree_test: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 rb_tree_test
+.PHONY : rb_tree_test
+
+# fast build rule for target.
+rb_tree_test/fast:
+	$(MAKE) -f CMakeFiles/rb_tree_test.dir/build.make CMakeFiles/rb_tree_test.dir/build
+.PHONY : rb_tree_test/fast
+
+#=============================================================================
 # Target rules for targets named algorithm_test
 
 # Build rule for target.
@@ -403,6 +416,33 @@ tests/mini_vector_test.cc.s:
 	$(MAKE) -f CMakeFiles/mini_vector_test.dir/build.make CMakeFiles/mini_vector_test.dir/tests/mini_vector_test.cc.s
 .PHONY : tests/mini_vector_test.cc.s
 
+tests/rb_tree_test.o: tests/rb_tree_test.cc.o
+
+.PHONY : tests/rb_tree_test.o
+
+# target to build an object file
+tests/rb_tree_test.cc.o:
+	$(MAKE) -f CMakeFiles/rb_tree_test.dir/build.make CMakeFiles/rb_tree_test.dir/tests/rb_tree_test.cc.o
+.PHONY : tests/rb_tree_test.cc.o
+
+tests/rb_tree_test.i: tests/rb_tree_test.cc.i
+
+.PHONY : tests/rb_tree_test.i
+
+# target to preprocess a source file
+tests/rb_tree_test.cc.i:
+	$(MAKE) -f CMakeFiles/rb_tree_test.dir/build.make CMakeFiles/rb_tree_test.dir/tests/rb_tree_test.cc.i
+.PHONY : tests/rb_tree_test.cc.i
+
+tests/rb_tree_test.s: tests/rb_tree_test.cc.s
+
+.PHONY : tests/rb_tree_test.s
+
+# target to generate assembly for a file
+tests/rb_tree_test.cc.s:
+	$(MAKE) -f CMakeFiles/rb_tree_test.dir/build.make CMakeFiles/rb_tree_test.dir/tests/rb_tree_test.cc.s
+.PHONY : tests/rb_tree_test.cc.s
+
 tests/skip_list_test.o: tests/skip_list_test.cc.o
 
 .PHONY : tests/skip_list_test.o
@@ -437,6 +477,7 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... rebuild_cache"
+	@echo "... rb_tree_test"
 	@echo "... algorithm_test"
 	@echo "... edit_cache"
 	@echo "... hash_table_test"
@@ -467,6 +508,9 @@ help:
 	@echo "... tests/mini_vector_test.o"
 	@echo "... tests/mini_vector_test.i"
 	@echo "... tests/mini_vector_test.s"
+	@echo "... tests/rb_tree_test.o"
+	@echo "... tests/rb_tree_test.i"
+	@echo "... tests/rb_tree_test.s"
 	@echo "... tests/skip_list_test.o"
 	@echo "... tests/skip_list_test.i"
 	@echo "... tests/skip_list_test.s"

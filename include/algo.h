@@ -31,7 +31,7 @@ T log2(T n) {
  */
 template<std::integral T>
 constexpr T ceil_power_of_2(T n) {
-    return n ? std::bit_ceil(n) : 0;
+    return n ? std::bit_ceil(n) : 1;
 }
 /**
  * @brief 移动拷贝

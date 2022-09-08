@@ -74,7 +74,7 @@ struct skip_list_iterator : public skip_list_iterator_base<T> {
 		return *this;
 	}
 
-	self& operator++(int) noexcept {
+	self operator++(int) noexcept {
 		self temp = *this;
 		++*this;
 		return temp;
@@ -85,7 +85,7 @@ struct skip_list_iterator : public skip_list_iterator_base<T> {
         return *this;
     }
 
-    self& operator--(int) noexcept {
+    self operator--(int) noexcept {
         self temp = *this;
         --*this;
         return temp;
@@ -127,7 +127,7 @@ struct skip_list_const_iterator : public skip_list_iterator_base<T> {
 		return *this;
 	}
 
-	self& operator++(int) noexcept {
+	self operator++(int) noexcept {
 		self temp = *this;
 		++*this;
 		return temp;
@@ -137,7 +137,7 @@ struct skip_list_const_iterator : public skip_list_iterator_base<T> {
         this->node = this->node->backward;
     }
 
-    self& operator--(int) noexcept {
+    self operator--(int) noexcept {
         self temp = *this;
         --*this;
         return temp;

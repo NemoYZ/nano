@@ -158,7 +158,7 @@ struct b_tree_const_iterator : public b_tree_iterator_base<T> {
 		return *this;
 	}
 
-	self& operator++(int) noexcept {
+	self operator++(int) noexcept {
 		self temp = *this;
 		++*this;
 		return temp;
@@ -177,7 +177,7 @@ struct b_tree_const_iterator : public b_tree_iterator_base<T> {
 		return *this;
 	}
 
-	self& operator--(int) noexcept {
+	self operator--(int) noexcept {
 		self temp = *this;
 		--* this;
 		return temp;

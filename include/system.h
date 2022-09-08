@@ -9,8 +9,10 @@
 #elif (__GNUC__ || __clang__)
 #ifdef __x86_64__
 #define BIT_SIZE 64
+#define BYTE_SIZE 8
 #else //__i386__
 #define BIT_SIZE 32
+#define BYTE_SIZE 4
 #endif //__x86_64__
 #endif //__MSC_VER
 

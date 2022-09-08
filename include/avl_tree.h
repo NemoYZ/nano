@@ -148,7 +148,7 @@ struct avl_iterator : public avl_iterator_base<T> {
 		return *this;
 	}
 
-	self& operator++(int) noexcept {
+	self operator++(int) noexcept {
 		self temp = *this;
 		++*this;
 		return temp;
@@ -159,7 +159,7 @@ struct avl_iterator : public avl_iterator_base<T> {
 		return *this;
 	}
 
-	self& operator--(int) noexcept {
+	self operator--(int) noexcept {
 		self temp = *this;
 		--* this;
 		return temp;
@@ -201,7 +201,7 @@ struct avl_const_iterator : public avl_iterator_base<T> {
 		return *this;
 	}
 
-	self& operator++(int) noexcept {
+	self operator++(int) noexcept {
 		self temp = *this;
 		++*this;
 		return temp;
@@ -212,7 +212,7 @@ struct avl_const_iterator : public avl_iterator_base<T> {
 		return *this;
 	}
 
-	self& operator--(int) noexcept {
+	self operator--(int) noexcept {
 		self temp = *this;
 		--* this;
 		return temp;

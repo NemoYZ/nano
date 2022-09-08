@@ -4,24 +4,24 @@
 
 namespace nano {
 
-tree_node_base* max_node(tree_node_base* root) {
-	if (nullptr == root) {
-		return nullptr;
-	}
-	while (root->right) {
-		root = root->right;
-	}
-
-	return root;
-}
-
-tree_node_base* min_node(tree_node_base* root) {
+tree_node_base* left_most(tree_node_base* root) {
 	if (nullptr == root) {
 		return nullptr;
 	}
 
 	while (root->left) {
 		root = root->left;
+	}
+
+	return root;
+}
+
+tree_node_base* right_most(tree_node_base* root) {
+	if (nullptr == root) {
+		return nullptr;
+	}
+	while (root->right) {
+		root = root->right;
 	}
 
 	return root;

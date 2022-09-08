@@ -6,7 +6,7 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
 
-# Make data base, printed on Sat Jul 23 20:04:10 2022
+# Make data base, printed on Thu Sep  8 09:07:26 2022
 
 # Variables
 
@@ -45,9 +45,9 @@ LESSOPEN = ||/usr/bin/lesspipe.sh %s
 # environment
 VSCODE_CWD = /home/Nemo
 # environment
-SSH_CONNECTION = 192.168.66.1 52278 192.168.66.3 22
+SSH_CONNECTION = 192.168.66.1 56557 192.168.66.3 22
 # environment
-PATH = /home/Nemo/.vscode-server/bin/3b889b090b5ad5793f524b5d1d39fda662b96a2a/bin/remote-cli:/home/Nemo/.cache/activestate/bin:/home/Nemo/.local/ActiveState/StateTool/release:/apps/Nemo/bin:/usr/local/bin:/usr/bin:/home/Nemo/bin:/usr/local/sbin:/usr/sbin
+PATH = /home/Nemo/.vscode-server/bin/784b0177c56c607789f9638da7b6bf3230d47a8c/bin/remote-cli:/home/Nemo/.cache/activestate/bin:/home/Nemo/.local/ActiveState/StateTool/release:/apps/Nemo/bin:/usr/local/bin:/usr/bin:/home/Nemo/bin:/usr/local/sbin:/usr/sbin
 # environment
 LSCOLORS = Gxfxcxdxbxegedabagacad
 # environment
@@ -65,7 +65,7 @@ LS_COLORS =
 # environment
 PWD = /programs/nano
 # environment
-VSCODE_IPC_HOOK_CLI = /run/user/1000/vscode-ipc-3d439ae9-2324-4844-8ea8-8b8fe8c05517.sock
+VSCODE_IPC_HOOK_CLI = /run/user/1000/vscode-ipc-0403d3d1-9eba-4987-a7b0-545f57aff4c6.sock
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
@@ -77,7 +77,7 @@ LD_LIBRARY_PATH = /apps/Nemo/lib:/apps/Nemo/lib64:
 # environment
 LOGNAME = Nemo
 # environment
-APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = true
+APPLICATION_INSIGHTS_NO_DIAGNOSTIC_CHANNEL = 1
 # automatic
 +F = $(notdir $+)
 # environment
@@ -119,13 +119,13 @@ MAKEFLAGS = Rrqp
 # environment
 MFLAGS = -Rrqp
 # environment
-SSH_CLIENT = 192.168.66.1 52278 22
+SSH_CLIENT = 192.168.66.1 56557 22
 # environment
 MAIL = /var/spool/mail/Nemo
 # automatic
 +D = $(patsubst %/,%,$(dir $+))
 # environment
-BROWSER = /home/Nemo/.vscode-server/bin/3b889b090b5ad5793f524b5d1d39fda662b96a2a/bin/helpers/browser.sh
+BROWSER = /home/Nemo/.vscode-server/bin/784b0177c56c607789f9638da7b6bf3230d47a8c/bin/helpers/browser.sh
 # environment
 VSCODE_HANDLES_SIGPIPE = true
 # default
@@ -275,6 +275,6 @@ Makefile:
 
 # strcache hash-table stats:
 # Load=24/8192=0%, Rehash=0, Collisions=1/32=3%
-# Finished Make data base on Sat Jul 23 20:04:10 2022
+# Finished Make data base on Thu Sep  8 09:07:26 2022
 
  

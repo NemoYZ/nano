@@ -1,4 +1,5 @@
 /programs/nano/build/CMakeFiles/rebuild_cache.dir
+/programs/nano/build/CMakeFiles/rb_tree_test.dir
 /programs/nano/build/CMakeFiles/algorithm_test.dir
 /programs/nano/build/CMakeFiles/edit_cache.dir
 /programs/nano/build/CMakeFiles/hash_table_test.dir

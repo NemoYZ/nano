@@ -6,7 +6,6 @@ else \
 	mkdir build; \
 	cd build && cmake -DCMAKE_CXX_COMPILER:FILEPATH=/apps/Nemo/bin/g++ -DCMAKE_C_COMPILER:FILEPATH=/apps/Nemo/bin/gcc Makefile ..; \
 fi
- 
 if [ -d "build" ]; then \
 	cd build && make -j4; \
 else \

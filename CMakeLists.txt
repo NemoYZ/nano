@@ -40,5 +40,8 @@ add_executable(mini_vector_test tests/mini_vector_test.cc)
 add_executable(hash_table_test tests/hash_table_test.cc)
 target_link_libraries(hash_table_test nano)
 
+add_executable(rb_tree_test tests/rb_tree_test.cc)
+target_link_libraries(rb_tree_test nano)
+
 SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
