@@ -49,14 +49,18 @@ queue
 -
 algorithm.h
 ../include/algorithm.h
-tree.h
-../include/tree.h
+bst.h
+../include/bst.h
 construct.h
 ../include/construct.h
 type_traits.h
 ../include/type_traits.h
 concepts.h
 ../include/concepts.h
+
+../include/bst.h
+tree.h
+../include/tree.h
 
 ../include/concepts.h
 concepts

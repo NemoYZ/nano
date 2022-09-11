@@ -227,6 +227,33 @@ nano/fast:
 	$(MAKE) -f CMakeFiles/nano.dir/build.make CMakeFiles/nano.dir/build
 .PHONY : nano/fast
 
+src/hash.o: src/hash.cc.o
+
+.PHONY : src/hash.o
+
+# target to build an object file
+src/hash.cc.o:
+	$(MAKE) -f CMakeFiles/nano.dir/build.make CMakeFiles/nano.dir/src/hash.cc.o
+.PHONY : src/hash.cc.o
+
+src/hash.i: src/hash.cc.i
+
+.PHONY : src/hash.i
+
+# target to preprocess a source file
+src/hash.cc.i:
+	$(MAKE) -f CMakeFiles/nano.dir/build.make CMakeFiles/nano.dir/src/hash.cc.i
+.PHONY : src/hash.cc.i
+
+src/hash.s: src/hash.cc.s
+
+.PHONY : src/hash.s
+
+# target to generate assembly for a file
+src/hash.cc.s:
+	$(MAKE) -f CMakeFiles/nano.dir/build.make CMakeFiles/nano.dir/src/hash.cc.s
+.PHONY : src/hash.cc.s
+
 src/tree.o: src/tree.cc.o
 
 .PHONY : src/tree.o
@@ -487,6 +514,9 @@ help:
 	@echo "... avl_tree_test"
 	@echo "... heap_algo_test"
 	@echo "... nano"
+	@echo "... src/hash.o"
+	@echo "... src/hash.i"
+	@echo "... src/hash.s"
 	@echo "... src/tree.o"
 	@echo "... src/tree.i"
 	@echo "... src/tree.s"

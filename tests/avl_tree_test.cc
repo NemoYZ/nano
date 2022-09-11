@@ -23,7 +23,9 @@ bool numCompFunc(int lhs, int rhs) { return lhs < rhs; }
 
 static nano::avl_tree<int, decltype(numCompFunc)> avlTree(numCompFunc);
 static std::set<int> intSet;
+static constexpr size_t N = 1000;
 
+void generate();
 void test_insert();
 void test_find();
 void test_erase();
@@ -34,25 +36,28 @@ void test_set_efficiency();
 void test();
 
 int main(int argc, char** argv) {
-    e.seed(time(nullptr));
-
-    //test();
+    generate();
     std::cout << "原始数据: ";
-    for (int i = 0; i < 10; ++i) {
-        nums.push_back(u(e));
-        //std::cout << nums.back() << ",";
+    for (size_t i = 0; i < nums.size(); ++i) {
+        std::cout << nums[i] << ",";
     }
-    std::cout << std::endl;
     std::cout << "*******************" << std::endl;  
     test_insert();
     //std::cout << "avl树共用时: " << nano::run_time(&test_efficiency) << "秒" << std::endl;
     //test_insert_string();
-    //test_find();
-    //test_erase();
-    auto avlTree2(avlTree);
-    assert(avlTree2 == avlTree);
+    test_find();
+    test_erase();
+    //auto avlTree2(avlTree);
+    //assert(avlTree2 == avlTree);
     
     return 0;
+}
+
+void generate() {
+    e.seed(time(nullptr));
+    for (size_t i = 0; i < N; ++i) {
+        nums.emplace_back(u(e));
+    }
 }
 
 void test_efficiency() {
@@ -95,7 +100,7 @@ void test_insert() {
     } else {
         std::cout << "平衡的" << std::endl;
     }
-    if (!std::is_sorted(avlTree.begin(), avlTree.end(), numComp)) {
+    if (!std::is_sorted(avlTree.begin(), avlTree.end())) {
         std::cout << "不是有序的" << std::endl;
     } else {
         std::cout << "是有序的" << std::endl;
@@ -103,8 +108,7 @@ void test_insert() {
 }
 
 void test_find() {
-    test_insert();
-    for (int i = 0; i < 20; ++i) {
+    for (size_t i = 0; i < N; ++i) {
         int num = u(e);
         auto iter = avlTree.find(num);
         if (iter != avlTree.end()) {
@@ -116,14 +120,13 @@ void test_find() {
 }
 
 void test_erase() {
-    test_insert();
-    for (int i = 0; i < 10000; ++i) {
+    for (size_t i = 0; i < N; ++i) {
         int num = u(e);
         //std::cout << "要删除的数据: " << num << std::endl;
         if (avlTree.erase_unique(num)) {
             std::cout << "删除" << num << "成功" << std::endl;
         } else {
-            //std::cout << "删除" << num << "失败" << std::endl;    
+            std::cout << "删除" << num << "失败" << std::endl;    
         }
         //std::cout << "层序遍历: " << avlTree.serialize() << std::endl;
         if (!avlTree.check_header()) {

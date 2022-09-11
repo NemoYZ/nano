@@ -16,6 +16,7 @@ string(CONCAT CXX_FLAGS
 
 set(LIB_SRC
     ${PROJECT_SOURCE_DIR}/src/tree.cc
+    ${PROJECT_SOURCE_DIR}/src/hash.cc
 )
 
 add_library(nano SHARED ${LIB_SRC})

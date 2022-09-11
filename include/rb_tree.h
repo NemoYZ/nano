@@ -119,7 +119,8 @@ right_rotate(rb_tree_node<T>* node, rb_tree_node<T>** root) {
 template<typename T>
 rb_tree_node<T>* rb_insert_fixup(rb_tree_node<T>* node, rb_tree_node<T>** root) {
 	//父亲结点为黑色就一直循环
-    while (node && NodeColor::RED == color_of(parent_of(node))) { 
+    while (node && parent_of(parent_of(node)) != node && 
+			NodeColor::RED == color_of(parent_of(node))) { 
 		rb_tree_node<T>* grandparent = parent_of(parent_of(node));
 		if (parent_of(node) == left_of(grandparent)) { //父亲结点为祖父结点的左孩子
 			rb_tree_node<T>* uncle = right_of(grandparent);
@@ -257,10 +258,10 @@ void rb_erase_fixup(rb_tree_node<T>* node, rb_tree_node<T>** root) {
 
 template<typename T, typename Comp = std::less<T>>
 rb_tree_node<T>* rb_insert_node_multi(rb_tree_node<T>* node, 
-        rb_tree_node<T>** root, const Comp& comp = Comp()) {
-	bst_node<T>* bstNode = node;
+        rb_tree_node<T>** root, const Comp& comp = Comp(),
+		tree_node_base* header = nullptr) {
 	bst_node<T>* bstRoot = *root;
-    bst_insert_node_multi(bstNode, &bstRoot, comp);
+    bst_insert_node_multi(node, &bstRoot, comp, header);
 	*root = static_cast<rb_tree_node<T>*>(bstRoot);
     rb_insert_fixup(node, root);
 	return *root;
@@ -268,15 +269,16 @@ rb_tree_node<T>* rb_insert_node_multi(rb_tree_node<T>* node,
 
 template<typename T, typename Comp = std::less<T>>
 std::pair<rb_tree_node<T>*, bool> rb_insert_node_unique(rb_tree_node<T>* node, 
-        rb_tree_node<T>** root, const Comp& comp = Comp()) {
+        rb_tree_node<T>** root, const Comp& comp = Comp(),
+		tree_node_base* header = nullptr) {
 	bst_node<T>* rootBase = *root;
     std::pair<bst_node<T>*, bool> myPair = bst_insert_node_unique(node, &rootBase, comp);
 	*root = static_cast<rb_tree_node<T>*>(rootBase);
-	if (!myPair.second) {
-		return { *root, false };
+	if (myPair.second) {
+		rb_insert_fixup(node, root);
 	}
-    rb_insert_fixup(node, root);
-    return { *root, true };
+    
+    return { static_cast<rb_tree_node<T>*>(myPair.first), myPair.second };
 }
 
 /**
@@ -299,7 +301,10 @@ rb_erase_node(rb_tree_node<T>* node, rb_tree_node<T>** root) {
     if (left_of(node) && right_of(node)) { 
 		if constexpr(std::is_move_assignable_v<T>) {
 			node->value = std::move(nsuccessor->value);
-			std::swap(node, nsuccessor);
+			//交换node和nsuccessor, 或者写std::swap(node, nsuccessor);
+			repNode = nsuccessor;
+			nsuccessor = node;
+			node = repNode;
 		} else {
 			rb_tree_node<T>* sparent = parent_of(nsuccessor);
 			rb_tree_node<T>* srchild = right_of(nsuccessor);
@@ -389,13 +394,13 @@ rb_equal_range_unique(const T& val, rb_tree_node<T>* root,
 
 template<typename T, typename Size = size_t, typename Comp = std::less<T>>
 inline Size 
-rb_count_multi(const T& val, bst_node<T>* root, const Comp& comp = Comp()) {
+rb_count_multi(const T& val, rb_tree_node<T>* root, const Comp& comp = Comp()) {
     return bst_count_multi<T, Size, Comp>(val, root, comp);
 }
 
 template<typename T, typename Size = size_t, typename Comp = std::less<T>>
 inline Size
-rb_count_unique(const T& val, bst_node<T>* root, const Comp& comp = Comp()) {
+rb_count_unique(const T& val, rb_tree_node<T>* root, const Comp& comp = Comp()) {
     return bst_count_unique<T, Size, Comp>(val, root, comp);
 }
 

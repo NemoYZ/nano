@@ -28,8 +28,8 @@ tree_node_base* right_most(tree_node_base* root) {
 }
 
 tree_node_base* successor(tree_node_base* node) {
-	if (node->right) {
-		return min_node(node->right);
+	if (right_of(node)) {
+		return min_node(right_of(node));
 	} else {
 		tree_node_base* parent = parent_of(node);
 		while (node == right_of(parent) && node != parent_of(parent)) {
@@ -44,8 +44,8 @@ tree_node_base* successor(tree_node_base* node) {
 }
 
 tree_node_base* precursor(tree_node_base* node) {
-	if (node->left) {
-		return max_node(node->left);
+	if (left_of(node)) {
+		return max_node(left_of(node));
 	} else {
 		tree_node_base* parent = parent_of(node);
 		while (node == left_of(parent) && node != parent_of(parent)) {

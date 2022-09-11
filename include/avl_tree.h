@@ -11,115 +11,386 @@
 #include <functional>
 #include <iostream>
 #include <string>
+
+#ifdef AVL_DEBUUG
 #include <queue>
+#endif //AVL_DEBUUG
+
 #include "algorithm.h"
-#include "tree.h"
+#include "bst.h"
 #include "construct.h"
 #include "type_traits.h"
 #include "concepts.h"
 
 namespace nano {
 
-struct avl_tree_node_base : tree_node_base {
-	using self 			= avl_tree_node_base;
-	using node_base_ptr = self*;
-	using height_type 	= int;
-	
-	avl_tree_node_base() noexcept = default;
-
-	avl_tree_node_base(node_base_ptr left, node_base_ptr right) noexcept :
-        tree_node_base(left, right) {
-    }
-
-    avl_tree_node_base(node_base_ptr left, node_base_ptr right, 
-            node_base_ptr parent) noexcept :
-			tree_node_base(left, right, parent) {
-    }
-
-	height_type height = 1;	//高度
-};
-
 template<typename T>
-struct avl_tree_node : public avl_tree_node_base {
-	using node_base_ptr = avl_tree_node_base*;
-	using height_type 	= typename avl_tree_node_base::height_type;
+struct avl_tree_node : public bst_node<T> {
+	using node_base_ptr = tree_node_base*;
+	using height_type 	= int;		//int8 enough
 	using self 			= avl_tree_node<T>;
 
 	avl_tree_node() noexcept = default;
 
-	avl_tree_node(const T& _value) noexcept(std::is_nothrow_assignable_v<T>) :
-		value(_value) {
+	avl_tree_node(const T& value) noexcept(std::is_nothrow_assignable_v<T>) :
+		bst_node<T>(value) {
 	}
 
 	avl_tree_node(T&& rvalue) noexcept(std::is_nothrow_move_assignable_v<T>) :
-		value(std::move<T>(rvalue)) {
+		bst_node<T>(std::move<T>(rvalue)) {
 	}
     
 	avl_tree_node(node_base_ptr left, node_base_ptr right) noexcept :
-        avl_tree_node_base(left, right) {
+        bst_node<T>(left, right) {
     }
 
     avl_tree_node(node_base_ptr left, node_base_ptr right, 
             node_base_ptr parent) noexcept :
-			avl_tree_node_base(left, right, parent) {
+			bst_node<T>(left, right, parent) {
     }
 
     avl_tree_node(node_base_ptr left, node_base_ptr right, 
-            node_base_ptr parent, const T& _value) noexcept(std::is_nothrow_assignable_v<T>) :
-        avl_tree_node_base(left, right, parent),
-		value(_value) {
+            node_base_ptr parent, const T& value) 
+			noexcept(std::is_nothrow_assignable_v<T>) :
+        bst_node<T>(left, right, parent, value) {
     }
 
 	avl_tree_node(node_base_ptr left, node_base_ptr right,
-            node_base_ptr parent, T&& rvalue) noexcept(std::is_nothrow_move_assignable_v<T>) :
-        avl_tree_node_base(left, right, parent),
-		value(std::move(rvalue)) {
+            node_base_ptr parent, T&& rvalue) 
+			noexcept(std::is_nothrow_move_assignable_v<T>) :
+        bst_node<T>(left, right, parent, std::move(rvalue)) {
     }
 
-	self* get_node_ptr() {
-		return &*this;
-	}
-
-	T value;
+	height_type height;
 };
 
-avl_tree_node_base::height_type height_of(avl_tree_node_base* node) {
+template<typename T>
+inline avl_tree_node<T>* left_of(avl_tree_node<T>* node) {
+	tree_node_base* nodeBase = node;
+	return static_cast<avl_tree_node<T>*>(left_of(nodeBase));
+}
+
+template<typename T>
+inline avl_tree_node<T>* right_of(avl_tree_node<T>* node) {
+	tree_node_base* nodeBase = node;
+	return static_cast<avl_tree_node<T>*>(right_of(nodeBase));
+}
+
+template<typename T>
+inline avl_tree_node<T>* parent_of(avl_tree_node<T>* node) {
+	tree_node_base* nodeBase = node;
+	return static_cast<avl_tree_node<T>*>(parent_of(nodeBase));
+}
+
+template<typename T>
+inline avl_tree_node<T>* precursor(avl_tree_node<T>* node) {
+	tree_node_base* nodeBase = node;
+	return static_cast<avl_tree_node<T>*>(precursor(nodeBase));
+}
+
+template<typename T>
+inline avl_tree_node<T>* successor(avl_tree_node<T>* node) {
+	tree_node_base* nodeBase = node;
+	return static_cast<avl_tree_node<T>*>(successor(nodeBase));
+}
+
+template<typename T>
+inline avl_tree_node<T>* 
+transplant(avl_tree_node<T>* target, avl_tree_node<T>* repNode, avl_tree_node<T>** root) {
+    tree_node_base* rootBase = *root;
+    transplant(target, repNode, &rootBase);
+	*root = static_cast<avl_tree_node<T>*>(rootBase);
+	return *root;
+}
+
+template<typename T>
+inline avl_tree_node<T>*
+left_rotate(avl_tree_node<T>* node, avl_tree_node<T>** root) {
+	tree_node_base* rootBase = *root;
+	node = static_cast<avl_tree_node<T>*>(left_rotate(node, &rootBase));
+	avl_tree_node<T>* lchild = left_of(node);
+	lchild->height = std::max(height_of(left_of(lchild)), 
+			height_of(right_of(lchild))) + 1;
+	node->height = std::max(height_of(left_of(node)), 
+			height_of(right_of(node))) + 1;
+	*root = static_cast<avl_tree_node<T>*>(rootBase);
+	return node;
+}
+
+template<typename T>
+inline avl_tree_node<T>*
+right_rotate(avl_tree_node<T>* node, avl_tree_node<T>** root) {
+	tree_node_base* rootBase = *root;
+	node = static_cast<avl_tree_node<T>*>(right_rotate(node, &rootBase));
+	avl_tree_node<T>* rchild = right_of(node);
+	rchild->height = std::max(height_of(left_of(rchild)), 
+			height_of(right_of(rchild))) + 1;
+	node->height = std::max(height_of(left_of(node)), 
+			height_of(right_of(node))) + 1;
+	*root = static_cast<avl_tree_node<T>*>(rootBase);
+	return node;
+}
+
+template<typename T>
+inline avl_tree_node<T>*
+left_right_rotate(avl_tree_node<T>* node, avl_tree_node<T>** root) {
+	left_rotate(left_of(node), root);
+	return right_rotate(node, root);
+}
+
+template<typename T>
+inline avl_tree_node<T>*
+right_left_rotate(avl_tree_node<T>* node, avl_tree_node<T>** root) {
+	right_rotate(right_of(node), root);
+	return left_rotate(node, root);
+}
+
+template<typename T>
+inline typename avl_tree_node<T>::height_type 
+height_of(avl_tree_node<T>* node) {
 	return node ? node->height : 0;
 }
 
-avl_tree_node_base::height_type balance_factor(avl_tree_node_base* node) {
-	return node ? height_of(static_cast<avl_tree_node_base*>(node->left)) - 
-		height_of(static_cast<avl_tree_node_base*>(node->right)) : 0;
+template<typename T>
+inline typename avl_tree_node<T>::height_type 
+balance_factor(avl_tree_node<T>* node) {
+	return node ? height_of(left_of(node)) - height_of(right_of(node)) : 0;
 }
 
-avl_tree_node_base* avl_precursor(avl_tree_node_base* node) {
-	if (-1 == height_of(node)) { //header
-		return static_cast<avl_tree_node_base*>(node->right);
+template<typename T>
+avl_tree_node<T>* avl_insert_fixup(avl_tree_node<T>* node, avl_tree_node<T>** root) {
+	using height_type = typename avl_tree_node<T>::height_type;
+	while (node) {
+		node->height = std::max(height_of(left_of(node)), 
+				height_of(right_of(node))) + 1;
+		height_type bf = balance_factor(node);
+		if (bf > 1) {
+			height_type lbf = balance_factor(left_of(node));
+			if (lbf > 0) {
+				node = right_rotate(node, root);
+			} else if (lbf < 0) {
+				node = left_right_rotate(node, root);
+			}
+		} else if (bf < -1) {
+			height_type rbf = balance_factor(right_of(node));
+			if (rbf < 0) {
+				node = left_rotate(node, root);
+			} else if (rbf > 0) {
+				node = right_left_rotate(node, root);
+			}
+		}
+		node = parent_of(node);
 	}
-	return static_cast<avl_tree_node_base*>(precursor(node));
+	
+	return node;
+}
+
+template<typename T>
+void avl_erase_fixup(avl_tree_node<T>* node, avl_tree_node<T>** root) {
+	using height_type = typename avl_tree_node<T>::height_type;
+	while (node) {
+		node->height = std::max(height_of(left_of(node)), height_of(right_of(node))) + 1;
+		height_type bf = balance_factor(node);
+		/**
+		* 解释一下这里为什么是>=0或者<=0
+		* 在插入当中，我们是不可能出现bf为+2并且右子树的bf为0的情况，但在删除的时候是有可能的，下面举例
+		*			 node											node	(右旋就可以解决问题，也就是第一个if语句)
+		*			/	\				删除结点right			   /
+		*		 left   right		 ------------------>         left
+		*		/												 /
+		*	   lleft										   lleft
+		* 在插入的时候是绝对不可能出现以上情况的，你不可能在已经不平衡的条件下再进行插入
+		*/
+		if (bf > 1) {
+			if (balance_factor(left_of(node)) >= 0) {
+				node = right_rotate(node, root);
+			} else {
+				node = left_right_rotate(node, root);
+			}
+		} else if (bf < -1) {
+			if (balance_factor(right_of(node)) <= 0) {
+				node = left_rotate(node, root);
+			} else {
+				node = right_left_rotate(node, root);
+			}
+		}
+		node = parent_of(node);
+	}
+}
+
+template<typename T, typename Comp = std::less<T>>
+avl_tree_node<T>* avl_insert_node_multi(avl_tree_node<T>* node, 
+        avl_tree_node<T>** root, const Comp& comp = Comp(), 
+		tree_node_base* header = nullptr) {
+	bst_node<T>* rootBase = *root;
+	bst_insert_node_multi(node, &rootBase, comp, header);
+	*root = static_cast<avl_tree_node<T>*>(rootBase);
+	avl_insert_fixup(node, root);
+	
+	return node;
+}
+
+template<typename T, typename Comp = std::less<T>>
+std::pair<avl_tree_node<T>*, bool> avl_insert_node_unique(avl_tree_node<T>* node, 
+        avl_tree_node<T>** root, const Comp& comp = Comp(),
+		tree_node_base* header = nullptr) {
+	using MyPair = std::pair<bst_node<T>*, bool>;
+	bst_node<T>* rootBase = *root;
+    MyPair myPair = bst_insert_node_unique(node, &rootBase, comp, header);
+	*root = static_cast<avl_tree_node<T>*>(rootBase);
+	if (myPair.second) {
+		avl_insert_fixup(node, root);
+	}
+    
+    return { static_cast<avl_tree_node<T>*>(myPair.first), myPair.second };
+}
+
+template<typename T>
+std::pair<avl_tree_node<T>*, avl_tree_node<T>*>
+avl_erase_node(avl_tree_node<T>* node, avl_tree_node<T>** root,
+		tree_node_base* header = nullptr) {
+	avl_tree_node<T>* repNode = nullptr;
+	avl_tree_node<T>* fixNode = nullptr;
+	avl_tree_node<T>* nsuccessor = successor(node);
+
+	if (left_of(node) && right_of(node)) {
+		if constexpr(std::is_move_assignable_v<T>) {
+			node->value = std::move(nsuccessor->value);
+			//swap(nsuccessor, node)
+			repNode = nsuccessor;
+            nsuccessor = node;
+            node = repNode;
+			fixNode = parent_of(node);
+			transplant(node, right_of(node), root);
+		} else {
+			/**
+			* 1、找到node的后继结点repNode
+			* 2、用repNode的右孩子代替repNode
+			* 3、用repNode代替node
+			*	这里要注意一下，有可能repNode是node的右孩子
+			*/
+			repNode = nsuccessor;
+			if (repNode == right_of(node)) { //替代结点为node的右孩子
+				fixNode = repNode;
+				repNode->left = left_of(node);
+				node->left->parent = repNode;
+				transplant(node, repNode, root);
+			} else {
+				fixNode = parent_of(repNode);
+				repNode->parent->left = right_of(repNode);
+				if (right_of(repNode)) {
+					repNode->right->parent = parent_of(repNode);
+				}
+
+				repNode->left = left_of(node);
+				repNode->right = right_of(node);
+				node->left->parent = repNode;
+				node->right->parent = repNode;
+				transplant(node, repNode, root);
+				repNode->height = height_of(node);
+			}
+		}
+	} else {
+		fixNode = parent_of(node);
+		if (nullptr == left_of(node)) {
+			repNode = right_of(node);
+		} else if (nullptr == right_of(node)) {
+			repNode = left_of(node);
+		}
+		transplant(node, repNode, root);
+	}
+	
+	avl_erase_fixup(fixNode, root);
+	if (header) {
+		if (left_of(header) == node && 
+			right_of(header) == node) {
+			header->left = header->right = header;
+			header->parent = nullptr;
+		} else if (left_of(header) == node) {
+			header->left = left_most(parent_of(header));
+		} else if (right_of(header) == node) {
+			header->right = right_most(parent_of(header));
+		}
+	}
+	
+	return { node, nsuccessor };
+}
+
+template<typename T, typename Comp = std::less<T>>
+inline avl_tree_node<T>* 
+avl_lbound(const T& val, avl_tree_node<T>* root, const Comp& comp = Comp()) {
+    return static_cast<avl_tree_node<T>*>(bst_lbound(val, root, comp));
+}
+
+template<typename T, typename Comp = std::less<T>>
+inline avl_tree_node<T>* 
+avl_ubound(const T& val, avl_tree_node<T>* root, const Comp& comp = Comp()) {
+    return static_cast<avl_tree_node<T>*>(bst_ubound(val, root, comp));
+}
+
+template<typename T, typename Comp = std::less<T>>
+inline std::pair<avl_tree_node<T>*, avl_tree_node<T>*> 
+avl_equal_range_multi(const T& val, avl_tree_node<T>* root,
+        const Comp& comp = Comp()) {
+    return { avl_lbound(val, root, comp), avl_ubound(val, root, comp) };
+}
+
+template<typename T, typename Comp = std::less<T>>
+inline std::pair<avl_tree_node<T>*, avl_tree_node<T>*> 
+avl_equal_range_unique(const T& val, avl_tree_node<T>* root,
+        const Comp& comp = Comp()) {
+    std::pair<bst_node<T>*, bst_node<T>*> myPair = bst_equal_range_unique(val, root, comp);
+	return { static_cast<avl_tree_node<T>*>(myPair.first), 
+			static_cast<avl_tree_node<T>*>(myPair.second) };
+}
+
+template<typename T, typename Size = size_t, typename Comp = std::less<T>>
+inline Size 
+avl_count_multi(const T& val, avl_tree_node<T>* root, const Comp& comp = Comp()) {
+    return bst_count_multi<T, Size, Comp>(val, root, comp);
+}
+
+template<typename T, typename Size = size_t, typename Comp = std::less<T>>
+inline Size
+avl_count_unique(const T& val, avl_tree_node<T>* root, const Comp& comp = Comp()) {
+    return bst_count_unique<T, Size, Comp>(val, root, comp);
 }
 
 template<typename T>
 struct avl_iterator_base : public std::iterator<std::bidirectional_iterator_tag, T> {
-	using self			= avl_iterator_base;
-	using node_base_ptr = avl_tree_node_base*;
+	using node_base_ptr = typename avl_tree_node<T>::node_base_ptr;
 	using node_ptr 		= avl_tree_node<T>*;
-
-	avl_iterator_base() noexcept = default;
-
-	avl_iterator_base(node_base_ptr _node) noexcept :
-		node(_node) {
+	using self			= avl_iterator_base;
+	
+	avl_iterator_base(node_base_ptr _header) noexcept :
+		header(_header) {
 	}
 
-	avl_iterator_base(node_ptr _node) noexcept :
-		node(_node) {
+	avl_iterator_base(node_base_ptr _node, node_base_ptr _header) noexcept :
+		node(_node),
+		header(_header) {
 	}
 
 	bool operator==(const self& other) const noexcept { return node == other.node; }
 
 	bool operator!=(const self& other) const noexcept { return node != other.node; }
 
+	void increase() {
+		node = successor(node);
+		if (nullptr == node) {
+			node = header;
+		}
+	}
+
+	void decrease() {
+		node = precursor(node);
+		if (nullptr == node) {
+			node = header;
+		}
+	}
+
 	node_base_ptr node = nullptr;
+	node_base_ptr header = nullptr;
 };
 
 template<typename T>
@@ -135,16 +406,16 @@ struct avl_iterator : public avl_iterator_base<T> {
 	using node_ptr			= typename avl_iterator_base<T>::node_ptr;
 	using self 				= avl_iterator<T>;
 
-	avl_iterator() noexcept = default;
-	avl_iterator(node_ptr _node) noexcept : 
-		avl_iterator_base<T>(_node) { 
+	avl_iterator(node_base_ptr header) noexcept :
+		avl_iterator_base<T>(header) {
 	}
-	avl_iterator(node_base_ptr _node) noexcept :
-		avl_iterator_base<T>(_node) {
+
+	avl_iterator(node_base_ptr node, node_base_ptr header) noexcept : 
+		avl_iterator_base<T>(node, header) { 
 	}
 
 	self& operator++() noexcept {
-		this->node = static_cast<avl_tree_node_base*>(successor(this->node));
+		this->increase();
 		return *this;
 	}
 
@@ -155,7 +426,7 @@ struct avl_iterator : public avl_iterator_base<T> {
 	}
 
 	self& operator--() noexcept {
-		this->node = avl_precursor(this->node);
+		this->decrease();
 		return *this;
 	}
 
@@ -166,7 +437,7 @@ struct avl_iterator : public avl_iterator_base<T> {
 	}
 
 	reference operator*() const noexcept {
-		return (static_cast<avl_tree_node<T>*>(this->node))->value;
+		return (static_cast<node_ptr>(this->node))->value;
 	}
 
 	pointer operator->() const noexcept {
@@ -186,18 +457,16 @@ struct avl_const_iterator : public avl_iterator_base<T> {
 	using node_ptr			= typename avl_iterator_base<T>::node_ptr;
 	using self 				= avl_const_iterator<T>;
 
-	avl_const_iterator() noexcept = default;
-
-	avl_const_iterator(avl_tree_node<T>* _node) noexcept : 
-		avl_iterator_base<T>(_node) { 
+	avl_const_iterator(node_base_ptr header) noexcept :
+		avl_iterator_base<T>(header) {
 	}
 
-	avl_const_iterator(node_base_ptr _node) noexcept : 
-		avl_iterator_base<T>(_node) { 
+	avl_const_iterator(node_base_ptr node, node_base_ptr header) noexcept : 
+		avl_iterator_base<T>(node) { 
 	}
 
 	self& operator++() noexcept {
-		this->node = static_cast<avl_tree_node_base*>(successor(this->node));
+		this->increase();
 		return *this;
 	}
 
@@ -208,7 +477,7 @@ struct avl_const_iterator : public avl_iterator_base<T> {
 	}
 
 	self& operator--() noexcept {
-		this->node = avl_precursor(this->node);
+		this->decrease();
 		return *this;
 	}
 
@@ -219,7 +488,7 @@ struct avl_const_iterator : public avl_iterator_base<T> {
 	}
 
 	reference operator*() const noexcept {
-		return (static_cast<avl_tree_node<T>*>(this->node))->value;
+		return (static_cast<node_ptr>(this->node))->value;
 	}
 
 	pointer operator->() const noexcept {
@@ -247,19 +516,38 @@ public:
 	using const_reverse_iterator    = const std::reverse_iterator<const_iterator>;
 
 private:
-	using node_ptr 					= avl_tree_node<T>*;
-	using node_base_ptr				= avl_tree_node_base*;
+	using node_base 				= tree_node_base;
+	using node 						= avl_tree_node<T>;
+	using node_base_ptr				= node_base*;
+	using node_ptr 					= node*;
+	using height_type				= typename avl_tree_node<T>::height_type;
 
 public:
-	iterator begin() noexcept { return (node_base_ptr)m_header->left; }
-	iterator end() noexcept { return m_header; }
-	reverse_iterator rbegin() noexcept { return std::reverse_iterator<iterator>(end()); }
-	reverse_iterator rend() noexcept { return std::reverse_iterator<iterator>(begin()); }
+	iterator begin() noexcept { 
+		return iterator(static_cast<node_ptr>(left_of(m_header)), m_header); 
+	}
+	iterator end() noexcept { 
+		return iterator(m_header, m_header); 
+	}
+	reverse_iterator rbegin() noexcept { 
+		return std::reverse_iterator<iterator>(end()); 
+	}
+	reverse_iterator rend() noexcept { 
+		return std::reverse_iterator<iterator>(begin()); 
+	}
 
-	const_iterator begin() const noexcept { return (node_base_ptr)min_node(m_header->parent); }
-	const_iterator end() const noexcept { return m_header; }
-	const_reverse_iterator rbegin() const noexcept { return std::reverse_iterator<const_iterator>(end()); }
-	const_reverse_iterator rend() const noexcept { return std::reverse_iterator<const_iterator>(begin()); }
+	const_iterator begin() const noexcept { 
+		return const_iterator(static_cast<node_ptr>(left_of(m_header)), m_header); 
+	}
+	const_iterator end() const noexcept { 
+		return const_iterator(m_header, m_header); 
+	}
+	const_reverse_iterator rbegin() const noexcept { 
+		return std::reverse_iterator<const_iterator>(end()); 
+	}
+	const_reverse_iterator rend() const noexcept { 
+		return std::reverse_iterator<const_iterator>(begin()); 
+	}
 
 public:
 	avl_tree(const Comp& comp = Comp()) ;
@@ -369,22 +657,16 @@ public:
 
 	std::pair<iterator, iterator>             
 	equal_range_unique(const key_type& key) noexcept {
-		iterator iter = find(key);
-		iterator next = iter;
-		if (end() == iter) { 
-			return { iter, iter };
-		}
-
-		return { iter, ++next };
+		using MyPair = std::pair<node_ptr, node_ptr>;
+		MyPair myPair = avl_equal_range_unique(key, parent_of(m_header));
+		return { iterator(myPair.first, myPair.second), iterator(myPair.second) };
 	}
 	std::pair<const_iterator, const_iterator> 
 	equal_range_unique(const key_type& key) const noexcept {
-		const_iterator iter = find(key);
-		const_iterator next = iter;
-		if (end() == iter) {
-			return { iter, iter };	
-		}
-		return { iter, ++next };
+		using MyPair = std::pair<node_ptr, node_ptr>;
+		MyPair myPair = avl_equal_range_unique(key, parent_of(m_header));
+		return { const_iterator(myPair.first, myPair.second), 
+				const_iterator(myPair.second) };
 	}
 
 	//other
@@ -398,27 +680,19 @@ public:
 	std::string serialize();
 	bool check_header();
 #endif //AVL_DEBUUG
-
-private:
-	node_ptr avl_left_rotate(node_ptr node, node_base_ptr* root);
-	node_ptr avl_right_rotate(node_ptr node, node_base_ptr* root);
-	node_ptr avl_left_right_rotate(node_ptr node, node_base_ptr* root);
-	node_ptr avl_right_left_rotate(node_ptr node, node_base_ptr* root);
-	iterator lbound(const key_type& key);
-	iterator ubound(const key_type& key);
-
+	
 private:
 	template<typename... Args>
 	node_ptr create_node(Args&&... args);
 	node_base_ptr create_node_base();
-	static void destroy_node(tree_node_base* node);
-	static void destroy_node_base(node_base_ptr node);
-	node_ptr insert_fixup(node_ptr node);
-	node_ptr erase_fixup(node_ptr node);
-	std::pair<node_ptr, bool> get_insert_muti(const key_type& key);
-	std::pair<node_ptr, int> get_insert_unique(const key_type& key);
-	iterator insert_node(node_ptr parent, node_ptr node, bool insert_left);
-	node_ptr copy_node(node_base_ptr node);
+	void destroy_node(node_ptr node);
+	void destroy_node_base(node_base_ptr node);
+	node_ptr get_root() const noexcept {
+		return static_cast<node_ptr>(parent_of(m_header));
+	}
+	node_ptr copy_node(node_ptr node) {
+		return create_node(node->value);
+	}
 
 private:
 	node_base_ptr m_header = nullptr; 	///< 与根节点互为父亲节点
@@ -430,7 +704,7 @@ private:
 template<typename T, typename Comp>
 std::string avl_tree<T, Comp>::serialize() {
 	std::string strTree;
-	node_ptr root = (node_ptr)m_header->parent;
+	node_ptr root = get_root();
 
 	std::queue<node_ptr> que;
 	que.push(root);
@@ -481,82 +755,10 @@ bool avl_tree<T, Comp>::check_header() {
 #endif //AVL_DEBUUG
 
 template<typename T, typename Comp>
-typename avl_tree<T, Comp>::node_ptr 
-avl_tree<T, Comp>::avl_left_rotate(node_ptr node, node_base_ptr* root) {
-	node = static_cast<node_ptr>(left_rotate(node, reinterpret_cast<tree_node_base**>(root)));
-	node_ptr lchild = static_cast<node_ptr>(node->left);
-	lchild->height = std::max(height_of(static_cast<node_ptr>(lchild->left)), 
-			height_of(static_cast<node_ptr>(lchild->right))) + 1;
-	node->height = std::max(height_of(static_cast<node_ptr>(node->left)), 
-			height_of(static_cast<node_ptr>(node->right))) + 1;
-	return node;
-}
-
-template<typename T, typename Comp>
-typename avl_tree<T, Comp>::node_ptr 
-avl_tree<T, Comp>::avl_right_rotate(node_ptr node, node_base_ptr* root) {
-	node = static_cast<node_ptr>(right_rotate(node, reinterpret_cast<tree_node_base**>(root)));
-	node_ptr rchild = (node_ptr)node->right;
-	rchild->height = std::max(height_of(static_cast<node_ptr>(rchild->left)), 
-			height_of(static_cast<node_ptr>(rchild->right))) + 1;
-	node->height = std::max(height_of(static_cast<node_ptr>(node->left)), 
-			height_of(static_cast<node_ptr>(node->right))) + 1;
-	return node;
-}
-
-template<typename T, typename Comp>
-typename avl_tree<T, Comp>::node_ptr 
-avl_tree<T, Comp>::avl_left_right_rotate(node_ptr node, node_base_ptr* root) {
-	avl_left_rotate(static_cast<node_ptr>(node->left), root);
-	return avl_right_rotate(node, root);
-}
-
-template<typename T, typename Comp>
-typename avl_tree<T, Comp>::node_ptr 
-avl_tree<T, Comp>::avl_right_left_rotate(node_ptr node, node_base_ptr* root) {
-	avl_right_rotate(static_cast<node_ptr>(node->right), root);
-	return avl_left_rotate(node, root);
-}
-
-template<typename T, typename Comp>
-typename avl_tree<T, Comp>::iterator 
-avl_tree<T, Comp>::lbound(const key_type& key) {
-	node_ptr root = (node_ptr)m_header->parent;
-	node_base_ptr parent = m_header; //最后一个不小于key的节点
-	while (root) {
-		if (!m_comp(root->value, key)) {
-			parent = root;
-			root = (node_ptr)root->left;
-		} else {
-			root = (node_ptr)root->right;
-		}
-	}
-
-	return parent;
-}
-
-template<typename T, typename Comp>
-typename avl_tree<T, Comp>::iterator 
-avl_tree<T, Comp>::ubound(const key_type& key) {
-	node_ptr root = static_cast<node_ptr>(m_header->parent);
-	node_base_ptr parent = m_header; //第一个大于key的节点
-	while (root) {
-		if (m_comp(key, root->value)) {
-			parent = root;
-			root = static_cast<node_ptr>(root->left);
-		} else {
-			root = static_cast<node_ptr>(root->right);
-		}
-	}
-
-	return parent;
-}
-
-template<typename T, typename Comp>
 template<typename... Args>
 typename avl_tree<T, Comp>::node_ptr
 avl_tree<T, Comp>::create_node(Args&&... args) {
-	node_ptr newNode = static_cast<node_ptr>(::operator new(sizeof(avl_tree_node<T>)));
+	node_ptr newNode = static_cast<node_ptr>(::operator new(sizeof(node)));
 	try {
 		construct(&newNode->value, std::forward<Args>(args)...);
 	} catch (...) {
@@ -570,155 +772,21 @@ avl_tree<T, Comp>::create_node(Args&&... args) {
 template<typename T, typename Comp>
 typename avl_tree<T, Comp>::node_base_ptr
 avl_tree<T, Comp>::create_node_base() {
-	node_base_ptr node = static_cast<node_base_ptr>(::operator new(sizeof(avl_tree_node_base)));
+	node_base_ptr node = static_cast<node_base_ptr>(::operator new(sizeof(node_base)));
 	node->left = node->right = node;
 	node->parent = nullptr;
-	node->height = -1;
 	return node;
 }
 
 template<typename T, typename Comp>
-void avl_tree<T, Comp>::destroy_node(tree_node_base* node) {
-	destroy(&(static_cast<node_ptr>(node))->value);
+void avl_tree<T, Comp>::destroy_node(node_ptr node) {
+	destroy(&node->value);
 	::operator delete(node);
 }
 
 template<typename T, typename Comp>
 void avl_tree<T, Comp>::destroy_node_base(node_base_ptr node) {
 	::operator delete(node);
-}
-
-template<typename T, typename Comp>
-typename avl_tree<T, Comp>::node_ptr 
-avl_tree<T, Comp>::insert_fixup(node_ptr node) {
-	while (node != m_header) {
-		node->height = std::max(height_of(static_cast<node_ptr>(node->left)), 
-				height_of(static_cast<node_ptr>(node->right))) + 1;
-		typename avl_tree_node<T>::height_type bf = balance_factor(static_cast<node_ptr>(node));
-		if (bf > 1) {
-			typename avl_tree_node<T>::height_type lbf = balance_factor(static_cast<node_ptr>(node->left));
-			if (lbf > 0) {
-				node = avl_right_rotate(node, reinterpret_cast<node_base_ptr*>(&m_header->parent));
-			} else if (lbf < 0) {
-				node = avl_left_right_rotate(node, reinterpret_cast<node_base_ptr*>(&m_header->parent));
-			}
-		} else if (bf < -1) {
-			typename avl_tree_node<T>::height_type rbf = balance_factor(static_cast<node_ptr>(node->right));
-			if (rbf < 0) {
-				node = avl_left_rotate(node, reinterpret_cast<node_base_ptr*>(&m_header->parent));
-			} else if (rbf > 0) {
-				node = avl_right_left_rotate(node, reinterpret_cast<node_base_ptr*>(&m_header->parent));
-			}
-		}
-		node = static_cast<node_ptr>(parent_of(node));
-	}
-	
-	return node;
-}
-
-template<typename T, typename Comp>
-typename avl_tree<T, Comp>::node_ptr  
-avl_tree<T, Comp>::erase_fixup(node_ptr node) {
-	while (node != m_header) {
-		node->height = std::max(height_of((node_ptr)node->left), height_of((node_ptr)node->right)) + 1;
-		typename avl_tree_node<T>::height_type bf = balance_factor(node);
-		/**
-		* 解释一下这里为什么是>=0或者<=0
-		* 在插入当中，我们是不可能出现bf为+2并且右子树的bf为0的情况，但在删除的时候是有可能的，下面举例
-		*			 node											node			(右旋就可以解决问题，也就是第一个if语句)
-		*			/	\				删除结点right			   /
-		*		 left   right		 ------------------>         left
-		*		/												 /
-		*	   lleft										   lleft
-		* 在插入的时候是绝对不可能出现以上情况的，你不可能在已经不平衡的条件下再进行插入
-		*/
-		if (bf > 1) {
-			if (balance_factor(static_cast<node_ptr>(node->left)) >= 0) {
-				node = avl_right_rotate(node, reinterpret_cast<node_base_ptr*>(&m_header->parent));
-			} else {
-				node = avl_left_right_rotate(node, reinterpret_cast<node_base_ptr*>(&m_header->parent));
-			}
-		} else if (bf < -1) {
-			if (balance_factor((node_ptr)node->right) <= 0) {
-				node = avl_left_rotate(node, reinterpret_cast<node_base_ptr*>(&m_header->parent));
-			} else {
-				node = avl_right_left_rotate(node, reinterpret_cast<node_base_ptr*>(&m_header->parent));
-			}
-		}
-		node = static_cast<node_ptr>(parent_of(node));
-	}
-	
-	return node;
-}
-
-template<typename T, typename Comp>
-std::pair<typename avl_tree<T, Comp>::node_ptr, bool>
-avl_tree<T, Comp>::get_insert_muti(const key_type& key) {
-	node_ptr root = static_cast<node_ptr>((m_header->parent));
-	node_ptr parent = static_cast<node_ptr>((m_header));
-	bool insert_left = true;
-	while (root && root != m_header) {
-		parent = root;
-		insert_left = m_comp(key, root->value);
-		root = static_cast<node_ptr>((insert_left ? root->left : root->right));
-	}	
-	return { parent, insert_left };
-}
-
-template<typename T, typename Comp>
-std::pair<typename avl_tree<T, Comp>::node_ptr, int>
-avl_tree<T, Comp>::get_insert_unique(const key_type& key) {
-	node_ptr root = static_cast<node_ptr>(m_header->parent);
-	node_base_ptr parent = m_header;
-	int insert_left = 1;
-	while (root && root != m_header) {	
-		parent = root;
-		if (m_comp(key, root->value)) {
-			root = static_cast<node_ptr>(root->left);
-			insert_left = 1;
-		} else if (m_comp(root->value, key)) {
-			root = static_cast<node_ptr>(root->right);
-			insert_left = -1;
-		} else {
-			insert_left = 0;
-			break;
-		}
-	}	
-	return { static_cast<node_ptr>(parent), insert_left };
-}
-
-template<typename T, typename Comp>
-typename avl_tree<T, Comp>::iterator 
-avl_tree<T, Comp>::insert_node(node_ptr parent, node_ptr node, bool insert_left) {
-	node->parent = parent;
-	if (parent == m_header) {
-		m_header->parent = node;
-		m_header->left = m_header->right = node;
-	}  else {
-		if (insert_left) {
-			parent->left = node;
-			if (parent == m_header->left) {
-				m_header->left = node;
-			}
-		} else {
-			parent->right = node;
-			if (parent == m_header->right) {
-				m_header->right = node;
-			}
-		}
-	}
-	insert_fixup(node);
-	++m_size;
-	return node;
-}
-
-template<typename T, typename Comp>
-typename avl_tree<T, Comp>::node_ptr 
-avl_tree<T, Comp>::copy_node(node_base_ptr node) {
-	node_ptr newNode = create_node((static_cast<node_ptr>(node))->value);
-	newNode->height = node->height;
-	newNode->left = newNode->right = nullptr;
-	return newNode;
 }
 
 template<typename T, typename Comp>
@@ -745,12 +813,11 @@ avl_tree<T, Comp>::avl_tree(const avl_tree& other) :
 		m_size(other.m_size),
 		m_comp(other.m_comp) {
 	if (other.size()) {
-		m_header->parent = copy_since(other.m_header->parent, [this](tree_node_base* node){
-			return static_cast<tree_node_base*>(copy_node(static_cast<node_base_ptr>(node)));
+		m_header->parent = copy_since(parent_of(other.m_header), [this](tree_node_base* node) {
+			return copy_node(static_cast<node_ptr>(node));
 		});
-		m_header->parent->parent = m_header;
-		m_header->left = min_node(m_header->parent);
-		m_header->right = max_node(m_header->parent);
+		m_header->left = min_node(parent_of(m_header));
+		m_header->right = max_node(parent_of(m_header));
 	}
 }
 
@@ -774,11 +841,14 @@ avl_tree<T, Comp>::operator=(const avl_tree& other) {
 	if (this != &other) {
 		clear();
 		if (other.m_size != 0) {
-			m_header->parent = copy_since(other.m_header->parent, m_header, copy_node);
-			m_header->left = min_node(m_header);
-			m_header->right = max_node(m_header);
+			m_header->parent = copy_since(parent_of(other.m_header), [this](tree_node_base* node){
+				return copy_node(static_cast<node_ptr>(node));
+			});
+			m_header->left = min_node(parent_of(m_header));
+			m_header->right = max_node(parent_of(m_header));
 		}
     	m_size = other.m_size;
+		m_comp = other.m_comp;
 	}
 
 	return *this;
@@ -793,6 +863,7 @@ avl_tree<T, Comp>::operator=(avl_tree&& other) {
 		m_header = other.m_header;
 		other.m_size = 0;
 		other.m_header = create_node_base();
+		m_comp = other.m_comp;
 	}
 	
 	return *this;
@@ -803,8 +874,11 @@ template <typename ...Args>
 typename avl_tree<T, Comp>::iterator 
 avl_tree<T, Comp>::emplace_multi(Args&& ...args) {
 	node_ptr newNode = create_node(std::forward<Args>(args)...);
-	std::pair<node_ptr, bool> pos = get_insert_muti(newNode->value);
-	return insert_node(pos.first, newNode, pos.second);
+	node_ptr root = get_root();
+	node_ptr node = avl_insert_node_multi(newNode, &root, m_comp, m_header);
+	m_header->parent = root;
+	++m_size;
+	return iterator(node, m_header);
 }
 
 template<typename T, typename Comp>
@@ -819,14 +893,16 @@ template <typename ...Args>
 std::pair<typename avl_tree<T, Comp>::iterator, bool> 
 avl_tree<T, Comp>::emplace_unique(Args&& ...args) {
 	node_ptr newNode = create_node(std::forward<Args>(args)...);
-	std::pair<node_ptr, int> pos = get_insert_unique(newNode->value);
-	if (pos.second != 0) {
-		return { insert_node(pos.first, newNode, pos.second == 1), true };
+	node_ptr root = get_root();
+	std::pair<node_ptr, bool> myPair = avl_insert_node_unique(newNode, &root, m_comp, m_header);
+	if (!myPair.second) {
+		//插入失败
+		destroy_node(newNode);
+	} else {
+		++m_size;
+		m_header->parent = root;
 	}
-
-	//插入失败
-	destroy_node(newNode);
-	return { pos.first, false };
+	return { iterator(myPair.first, m_header), myPair.second };
 }
 
 template<typename T, typename Comp>
@@ -855,70 +931,15 @@ void avl_tree<T, Comp>::insert_unique(InputIter first, InputIter last) {
 
 //erase
 template<typename T, typename Comp>
-typename avl_tree<T, Comp>::iterator 
+typename avl_tree<T, Comp>::iterator
 avl_tree<T, Comp>::erase(iterator hint) {
-	iterator iter = hint;
-	if (end() == iter) {
-		return end();
-	}
-
-	node_base_ptr node = iter.node;
-	node_base_ptr replace_node = nullptr;
-	node_base_ptr fix_node = nullptr;
-	node_base_ptr next = (node_base_ptr)successor(node);
-
-	if (node->left && node->right) {
-		/**
-		* 1、找到node的后继结点replace_node
-		* 2、用replace_node的右孩子代替replace_node
-		* 3、用replace_node代替node
-		*	这里要注意一下，有可能replace_node是node的右孩子
-		*/
-		replace_node = next;
-		if (replace_node == node->right) { //替代结点为node的右孩子
-			fix_node = replace_node;
-			replace_node->left = node->left;
-			node->left->parent = replace_node;
-			transplant(node, replace_node, &m_header->parent);
-		} else {
-			fix_node = (node_base_ptr)replace_node->parent;
-			replace_node->parent->left = replace_node->right;
-			if (replace_node->right) {
-				replace_node->right->parent = replace_node->parent;
-			}
-
-			replace_node->left = node->left;
-			replace_node->right = node->right;
-			node->left->parent = replace_node;
-			node->right->parent = replace_node;
-			transplant(node, replace_node, &m_header->parent);
-			((node_ptr)replace_node)->height = ((node_ptr)node)->height;
-		}
-	} else {
-		fix_node = (node_base_ptr)node->parent;
-		if (nullptr == node->left) {
-			replace_node = (node_base_ptr)(node->right);
-		} else if (nullptr == node->right) {
-			replace_node = (node_base_ptr)node->left; //这里replace_node是不可能为空的
-		}
-		transplant(node, replace_node, &m_header->parent);
-	}
-	
-	erase_fixup((node_ptr)fix_node);
-	if (node == m_header->left) {
-		m_header->left = min_node(m_header->parent);
-	}
-	if (node == m_header->right) {
-		m_header->right = max_node(m_header->parent);
-	}
-	destroy_node((node_ptr)node);
-
+	node_ptr node = static_cast<node_ptr>(hint.node);
+	node_ptr root = static_cast<node_ptr>(parent_of(m_header));
+	std::pair<node_ptr, node_ptr> myPair = avl_erase_node(node, &root, m_header);
+	m_header->parent = root;
+	destroy_node(myPair.first);
 	--m_size;
-	if (0 == m_size) {
-		m_header->left = m_header->right = m_header;
-	}
-	
-	return next;
+	return iterator(myPair.second, m_header);
 }
 
 template<typename T, typename Comp>
@@ -954,7 +975,9 @@ void avl_tree<T, Comp>::erase(iterator first, iterator last) {
 
 template<typename T, typename Comp>
 void avl_tree<T, Comp>::clear() {
-	clear_since(m_header->parent, &destroy_node);
+	clear_since(m_header->parent, [this](tree_node_base* node) {
+		this->destroy_node(static_cast<node_ptr>(node));
+	});
 	m_header->parent = m_header->left = m_header->right = nullptr;
 }
 
@@ -962,81 +985,85 @@ void avl_tree<T, Comp>::clear() {
 template<typename T, typename Comp>
 typename avl_tree<T, Comp>::iterator 
 avl_tree<T, Comp>::find(const key_type& key) noexcept {
-	iterator iter = lbound(key);
-	if (end() == iter || m_comp(key, *iter)) {
+	node_ptr node = avl_lbound(key, static_cast<node_ptr>(parent_of(m_header)));
+	if (nullptr == node || m_comp(key, node->value)) {
 		return end();
 	}
 
-	return iter;
+	return iterator(node, m_header);
 }
 
 template<typename T, typename Comp>
 typename avl_tree<T, Comp>::const_iterator 
 avl_tree<T, Comp>::find(const key_type& key) const noexcept {
-	iterator iter = lbound(key);
-	if (end() == iter || m_comp(key, *iter)) {
+	node_ptr node = avl_lbound(key, static_cast<node_ptr>(parent_of(m_header)));
+	if (nullptr == node || m_comp(key, node->value)) {
 		return end();
 	}
 
-	return iter;
+	return const_iterator(node, m_header);
 }
 
 template<typename T, typename Comp>
 typename avl_tree<T, Comp>::size_type 
 avl_tree<T, Comp>::count_multi(const key_type& key) noexcept {
-	std::pair<iterator, iterator> p = equal_range_multi(key);
-	return std::distance(p.first, p.last);
+	node_ptr root = static_cast<node_ptr>(parent_of(m_header));
+	return avl_count_multi<T, size_type, Comp>(key, root, m_comp);
 }
 
 template<typename T, typename Comp>
 typename avl_tree<T, Comp>::size_type 
 avl_tree<T, Comp>::count_multi(const key_type& key) const noexcept {
-	std::pair<const_iterator, const_iterator> p = equal_range_multi(key);
-	return std::distance(p.first, p.last);
+	node_ptr root = static_cast<node_ptr>(parent_of(m_header));
+	return avl_count_multi<T, size_type, Comp>(key, root, m_comp);
 }
 
 template<typename T, typename Comp>
 typename avl_tree<T, Comp>::size_type 
 avl_tree<T, Comp>::count_unique(const key_type& key) noexcept {
-	iterator iter = find(key);
-	return end() == iter ? 0 : 1;
+	node_ptr root = static_cast<node_ptr>(parent_of(m_header));
+	return avl_count_unique<T, size_type, Comp>(key, root, m_comp);
 }
 
 template<typename T, typename Comp>
 typename avl_tree<T, Comp>::size_type 
 avl_tree<T, Comp>::count_unique(const key_type& key) const noexcept {
-	const_iterator iter = find(key);
-	return end() == iter ? 0 : 1;
+	node_ptr root = static_cast<node_ptr>(parent_of(m_header));
+	return avl_count_unique<T, size_type, Comp>(key, root, m_comp);
 }
 
 template<typename T, typename Comp>
 typename avl_tree<T, Comp>::iterator 
 avl_tree<T, Comp>::lower_bound(const key_type& key) noexcept {
-	return lbound(key).node;
+	node_ptr root = static_cast<node_ptr>(parent_of(m_header));
+	return iterator(avl_lbound(key, root, m_comp), m_header);
 }
 
 template<typename T, typename Comp>
 typename avl_tree<T, Comp>::const_iterator 
 avl_tree<T, Comp>::lower_bound(const key_type& key) const noexcept {
-	return lbound(key).node;
+	node_ptr root = static_cast<node_ptr>(parent_of(m_header));
+	return const_iterator(avl_lbound(key, root, m_comp), m_header);
 }
 
 template<typename T, typename Comp>
 typename avl_tree<T, Comp>::iterator 
 avl_tree<T, Comp>::upper_bound(const key_type& key) noexcept {
-	return ubound(key);
+	node_ptr root = static_cast<node_ptr>(parent_of(m_header));
+	return iterator(avl_ubound(key, root, m_comp), m_header);
 }
 
 template<typename T, typename Comp>
 typename avl_tree<T, Comp>::const_iterator 
 avl_tree<T, Comp>::upper_bound(const key_type& key) const noexcept {
-	return ubound(key);
+	node_ptr root = static_cast<node_ptr>(parent_of(m_header));
+	return const_iterator(avl_ubound(key, root, m_comp), m_header);
 }
 
 template<typename T, typename Comp>
 bool operator<(const avl_tree<T, Comp>& lhs, const avl_tree<T, Comp>& rhs) {
 	return std::lexicographical_compare(lhs.begin(), lhs.end(), 
-			rhs.begin(), rhs.end());
+			rhs.begin(), rhs.end(), Comp());
 }
 
 template<typename T, typename Comp>

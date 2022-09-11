@@ -429,7 +429,7 @@ struct ht_const_iterator : public ht_iterator_base<T, cache, Hash, Comp, Pred> {
 	using difference_type   = ptrdiff_t;
 	using value_type 		= T;
 	using const_reference 	= const T&;   
-    using self              = ht_iterator<T, cache, Hash, Comp, Pred>;
+    using self              = ht_const_iterator<T, cache, Hash, Comp, Pred>;
 	using size_type			= typename ht_iterator_base<T, cache, Hash, Comp, Pred>::size_type;
 	using pointer 			= typename ht_iterator_base<T, cache, Hash, Comp, Pred>::pointer;
 	using reference	 		= typename ht_iterator_base<T, cache, Hash, Comp, Pred>::reference;
@@ -517,12 +517,14 @@ public:
 	}
 	const_iterator begin() const noexcept { 
 		std::pair<size_type, entry_type> myPair = beg();
-		return const_iterator(myPair.first, myPair.second, this); 
+		return const_iterator(myPair.first, myPair.second, 
+			const_cast<hash_table<T, cache, Hash, Comp, Pred>*>(this)); 
 	}
 
 	iterator end() noexcept { return iterator(bucket_count(), entry_type(), this); }
 	const_iterator end() const noexcept { 
-		return const_iterator(bucket_count(), nullptr, this); 
+		return const_iterator(bucket_count(), entry_type(), 
+			const_cast<hash_table<T, cache, Hash, Comp, Pred>*>(this)); 
 	}
 	const_iterator cbegin() const noexcept { return begin(); }
 	const_iterator cend()   const noexcept { return end(); }
@@ -688,7 +690,7 @@ private:
 	using entry_ptr  	= entry_type*;
 
 private:
-	std::pair<size_type, entry_type> beg();
+	std::pair<size_type, entry_type> beg() const;
 
 private:
 	bool is_tree(size_type index) const {
@@ -730,7 +732,7 @@ private:
 		delete[] entry;
 	}
 	void copy_entry_unchecked(entry_ptr buckets, size_type n);
-	entry_type bucket_entry(size_type index);
+	entry_type bucket_entry(size_type index) const;
 	std::pair<size_type, entry_type> next_bucket_entry(size_type index);
 	template<typename... Args>
 	list_node_ptr create_list_node_nohash(Args&&... args);
@@ -785,7 +787,7 @@ private:
 template<typename T, bool cache, typename Hash, typename Comp, typename Pred>
 std::pair<typename hash_table<T, cache, Hash, Comp, Pred>::size_type, 
 		typename hash_table<T, cache, Hash, Comp, Pred>::entry_type> 
-hash_table<T, cache, Hash, Comp, Pred>::beg() {
+hash_table<T, cache, Hash, Comp, Pred>::beg() const {
 	size_type index = 0;
 	for (; index != m_bucket_count; ++index) {
 		if (!m_buckets[index].isnull()) { //也可以判断tree_node
@@ -887,10 +889,20 @@ template<typename T, bool cache, typename Hash, typename Comp, typename Pred>
 void hash_table<T, cache, Hash, Comp, Pred>::copy_entry_unchecked(entry_ptr buckets, size_type n) {
 	for (size_type i = 0; i != n; ++i) {
 		if (!buckets[i].isnull()) {
-			if (is_tree(buckets[i])) {
-				m_buckets[i] = copy_since(buckets[i].as_tree_node_ptr());
+			if (is_tree(i)) {
+				tree_node_base* newTree = copy_since(buckets[i].as_tree_node_ptr(), 
+					[this](tree_node_base* node){
+						tree_node_ptr tnode = static_cast<tree_node_ptr>(node);
+						return create_tree_node(tnode->value);
+				});
+				m_buckets[i] = static_cast<tree_node_ptr>(newTree);
 			} else {
-				m_buckets[i] = copy_since(buckets[i].as_list_node_ptr());
+				list_node_base* newList = copy_since(buckets[i].as_list_node_ptr(), 
+					[this](list_node_base* node){
+						list_node_ptr lnode = static_cast<list_node_ptr>(node);
+						return create_list_node(lnode->value);
+				});
+				m_buckets[i] = static_cast<list_node_ptr>(newList);
 			}
 		}
 	}
@@ -898,7 +910,7 @@ void hash_table<T, cache, Hash, Comp, Pred>::copy_entry_unchecked(entry_ptr buck
 
 template<typename T, bool cache, typename Hash, typename Comp, typename Pred>
 typename hash_table<T, cache, Hash, Comp, Pred>::entry_type 
-hash_table<T, cache, Hash, Comp, Pred>::bucket_entry(size_type index) {
+hash_table<T, cache, Hash, Comp, Pred>::bucket_entry(size_type index) const {
 	if (index != m_bucket_count) {
 		if (is_list(index)) {
 			return m_buckets[index];
@@ -1019,7 +1031,6 @@ hash_table<T, cache, Hash, Comp, Pred>::insert_list_node_multi(size_type index, 
 		//继续统计有多少个相等的元素
 		last = next_of(last);
 		++nodeCount;
-		std::cout << "here" << std::endl;
 	}
 	if (nodeCount >= TREEFY_THRESHOLD) {
 		//达到条件转为树
@@ -1315,7 +1326,6 @@ std::pair<typename hash_table<T, cache, Hash, Comp, Pred>::iterator, bool>
 hash_table<T, cache, Hash, Comp, Pred>::insert_unique_norehash(const value_type& value) {
 	size_t hashVal = m_hash(value);
 	size_type index = get_bucket_index(hashVal);
-	std::cout << "value=" << value << " hashVal=" << hashVal << " index=" << index << std::endl;
 	if (is_list(index)) {
 		list_node_ptr newNode = create_list_node_nohash(value);
 		if constexpr(cache) {
@@ -1460,7 +1470,6 @@ typename hash_table<T, cache, Hash, Comp, Pred>::size_type
 hash_table<T, cache, Hash, Comp, Pred>::erase_unique(const key_type& key) {
 	iterator iter = find(key);
 	if (iter != end()) {
-		std::cout << "here" << std::endl;
 		erase(iter);
 		return 1;
 	}
@@ -1751,6 +1760,21 @@ void hash_table<T, cache, Hash, Comp, Pred>::rehash(size_type count) {
 #endif //BIT32
 	other.m_buckets = nullptr;
 	other.m_bucket_count = 0;
+}
+
+template<typename T, bool cache, typename Hash, typename Comp, typename Pred>
+bool operator==(const hash_table<T, cache, Hash, Comp, Pred>& lhs,
+		const hash_table<T, cache, Hash, Comp, Pred>& rhs) {
+	if (lhs.size() != rhs.size()) {
+		return false;
+	}
+	return std::equal(lhs.begin(), rhs.begin(), rhs.end());
+}
+
+template<typename T, bool cache, typename Hash, typename Comp, typename Pred>
+bool operator!=(const hash_table<T, cache, Hash, Comp, Pred>& lhs,
+		const hash_table<T, cache, Hash, Comp, Pred>& rhs) {
+	return !(lhs == rhs);
 }
 
 } //namespace nano

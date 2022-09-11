@@ -109,47 +109,66 @@ std::pair<bst_node<T>*, int> bst_get_insert_unique(bst_node<T>* root,
 
 template<typename T, typename Comp = std::less<T>>
 bst_node<T>* bst_insert_node_multi(bst_node<T>* node, 
-        bst_node<T>** root, const Comp& comp = Comp()) {
+        bst_node<T>** root, const Comp& comp = Comp(),
+        tree_node_base* header = nullptr) {
     if (nullptr == *root) {
         *root = node;
-        return *root;
-    }
-
-    auto [parent, insertLeft] = bst_get_insert_multi(*root, node->value, comp);
-    node->parent = parent;
-    if (insertLeft) {
-        parent->left = node;
+        if (header) {
+            header->left = header->right = header->parent = node;
+        }
     } else {
-        parent->right = node;
+        auto [parent, insertLeft] = bst_get_insert_multi(*root, node->value, comp);
+        node->parent = parent;
+        if (insertLeft) {
+            parent->left = node;
+            if (header && left_of(header) == parent) {
+                header->left = node;
+            }
+        } else {
+            parent->right = node;
+            if (header && right_of(header) == parent) {
+                header->right = node;
+            }
+        }
     }
 
-    return *root;
+    return node;
 }
 
 template<typename T, typename Comp = std::less<T>>
 std::pair<bst_node<T>*, bool> bst_insert_node_unique(bst_node<T>* node, 
-        bst_node<T>** root, const Comp& comp = Comp()) {
+        bst_node<T>** root, const Comp& comp = Comp(),
+        tree_node_base* header = nullptr) {
     if (nullptr == *root) {
         *root = node;
-        return { *root, true };
-    }
-    
+        if (header) {
+            header->left = header->right = header->parent = node;
+        }
+        return { node, true };
+    } 
+
     auto [parent, insertLeft] = bst_get_insert_unique(*root, node->value, comp);
     switch (insertLeft) {
         case -1:
             node->parent = parent;
             parent->left = node;
+            if (header && left_of(header) == parent) {
+                header->left = node;
+            }
             break;
         case 1:
             node->parent = parent;
             parent->right = node;
+            if (header && right_of(header) == parent) {
+                header->right = node;
+            }
             break;
         case 0:
             [[fallthrough]];
         default:
             break;
     }
-    return { *root, insertLeft != 0 };
+    return { node, insertLeft != 0 };
 }
 
 template<typename T>
@@ -174,7 +193,7 @@ bst_node<T>* bst_erase_node(bst_node<T>* node, bst_node<T>** root) {
             transplant(node, nsuccessor, root);
             node->left = nullptr;
 
-            if (nsuccessor == node->right) {
+            if (nsuccessor == right_of(node->right)) {
                 node->right = nsuccessor->right;
                 if (nsuccessor->right) {
                     nsuccessor->right->parent = node;
@@ -185,7 +204,7 @@ bst_node<T>* bst_erase_node(bst_node<T>* node, bst_node<T>** root) {
                 nsuccessor->right = node->right;
                 node->right->parent = nsuccessor;
                 node->parent = sparent;
-                sparent->left = node;				//_successor肯定是它父亲结点的左孩子
+                sparent->left = node;				//successor肯定是它父亲结点的左孩子
                 node->right = srchild;
                 if (srchild) {
                     srchild->parent = node;

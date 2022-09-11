@@ -5,6 +5,7 @@ CMakeFiles/avl_tree_test.dir/tests/avl_tree_test.cc.o
  ../include/algo.h
  ../include/algorithm.h
  ../include/avl_tree.h
+ ../include/bst.h
  ../include/concepts.h
  ../include/construct.h
  ../include/heap_algo.h
