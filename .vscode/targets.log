@@ -5,9 +5,8 @@ make all --print-data-base --no-builtin-variables --no-builtin-rules --question
 # License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
 # This is free software: you are free to change and redistribute it.
 # There is NO WARRANTY, to the extent permitted by law.
- 
 
-# Make data base, printed on Sun Sep 11 10:28:48 2022
+# Make data base, printed on Sun Sep 11 14:54:59 2022
 
 # Variables
 
@@ -66,7 +65,7 @@ LS_COLORS =
 # environment
 PWD = /programs/nano
 # environment
-VSCODE_IPC_HOOK_CLI = /run/user/1000/vscode-ipc-3f295b85-f6fd-404d-a15a-73854f936786.sock
+VSCODE_IPC_HOOK_CLI = /run/user/1000/vscode-ipc-0ffa5f08-c796-4fd3-bbba-05e828e6f452.sock
 # automatic
 *D = $(patsubst %/,%,$(dir $*))
 # environment
@@ -276,6 +275,6 @@ Makefile:
 
 # strcache hash-table stats:
 # Load=24/8192=0%, Rehash=0, Collisions=1/32=3%
-# Finished Make data base on Sun Sep 11 10:28:48 2022
+# Finished Make data base on Sun Sep 11 14:54:59 2022
 
  

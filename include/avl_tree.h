@@ -11,6 +11,7 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <compare> //C++20
 
 #ifdef AVL_DEBUUG
 #include <queue>
@@ -548,6 +549,12 @@ public:
 	const_reverse_iterator rend() const noexcept { 
 		return std::reverse_iterator<const_iterator>(begin()); 
 	}
+// public:
+// 	friend auto operator<=>(const avl_tree<T, Comp>& lhs, 
+// 			const avl_tree<T, Comp>& rhs) {
+// 		return std::lexicographical_compare_three_way(lhs.begin(), lhs.end(),
+// 			rhs.begin(), rhs.end(), lhs.m_comp);
+// 	}
 
 public:
 	avl_tree(const Comp& comp = Comp()) ;

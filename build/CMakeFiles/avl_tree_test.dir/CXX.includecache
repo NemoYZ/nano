@@ -45,6 +45,8 @@ iostream
 -
 string
 -
+compare
+-
 queue
 -
 algorithm.h
